@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Radha Jap">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#060D1F">
+<title>Radha Naam Jap</title>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi&family=Hind+Siliguri:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=EB+Garamond:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://accounts.google.com/gsi/client" async></script>
+<style>
+:root{
+  --bd:#060D1F;--bm:#0A1535;--bc:#0F1E45;
+  --bg:#2255CC;--a:#4A90E2;--a2:#6DB8FF;
+  --gold:#FFD700;--gg:rgba(255,215,0,0.5);
+  --rose:#E8336D;--rl:#FF6B9D;
+  --green:#2ECC71;--red:#E74C3C;
+  --tl:#D6E8FF;--td:#6A8FBF;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px);
+  --sar:env(safe-area-inset-right,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;}
+body{font-family:'Inter',sans-serif;background:var(--bd);color:var(--tl);
+  min-height:100dvh;overflow-x:hidden;position:relative;
+  padding-top:var(--sat);padding-left:var(--sal);padding-right:var(--sar);}
+body::before{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:120vmax;height:120vmax;
+  background:radial-gradient(circle at 50% 30%,rgba(34,85,204,0.18) 0%,transparent 50%),
+  radial-gradient(circle at 20% 80%,rgba(74,144,226,0.10) 0%,transparent 40%);
+  pointer-events:none;z-index:0;}
+.ls{position:fixed;inset:0;background:var(--bd);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:999;transition:opacity 0.8s;}
+.ls.hide{opacity:0;pointer-events:none;}
+.ls-img{width:200px;height:200px;border-radius:50%;object-fit:cover;object-position:top center;
+  border:3px solid rgba(255,215,0,0.6);animation:glow 2s ease-in-out infinite;}
+@keyframes glow{0%,100%{box-shadow:0 0 30px rgba(255,215,0,0.35);}50%{box-shadow:0 0 65px rgba(255,215,0,0.75);}}
+.ls-title{font-family:'Tiro Devanagari Hindi',serif;font-size:26px;color:var(--gold);letter-spacing:8px;margin-top:20px;}
+.ls-sub{font-size:11px;color:var(--td);letter-spacing:3px;text-transform:uppercase;margin-top:8px;}
+/* Views */
+.view{display:none;position:fixed;top:var(--sat);bottom:0;left:0;right:0;z-index:1;flex-direction:column;overflow:hidden;}
+.view.active{display:flex;}
+#vs,#vc,#vb,#vst,#vset{overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(60px + var(--sab));}
+/* Bottom nav */
+.bnav{position:fixed;bottom:0;left:0;right:0;
+  background:linear-gradient(180deg,var(--bm) 0%,var(--bd) 100%);
+  border-top:1px solid rgba(74,144,226,0.25);
+  display:flex;z-index:100;
+  padding-bottom:var(--sab);padding-left:var(--sal);padding-right:var(--sar);}
+.nb{flex:1;padding:8px 1px 6px;background:none;border:none;color:var(--td);font-size:8px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;transition:color 0.2s;font-family:'Inter',sans-serif;}
+.nb svg{width:20px;height:20px;}
+.nb.active{color:var(--a2);}
+.nb.active svg{filter:drop-shadow(0 0 5px rgba(109,184,255,0.8));}
+/* Jap view */
+#vj{background:radial-gradient(ellipse at top,#0A1F55 0%,var(--bd) 65%);
+  padding-bottom:calc(56px + var(--sab));display:flex;flex-direction:column;}
+.rh{display:flex;align-items:center;justify-content:space-between;padding:4px 8px 2px;gap:4px;flex-shrink:0;}
+.rh-center{flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0 4px;}
+.rn{font-family:'Tiro Devanagari Hindi',serif;font-size:clamp(52px,14vw,82px);color:#FFD700;
+  text-shadow:0 0 35px rgba(255,215,0,0.75),0 0 70px rgba(255,215,0,0.35);line-height:1;letter-spacing:2px;}
+.rh-card{flex:1;display:flex;flex-direction:column;gap:2px;padding:2px;}
+.rh-card-title{font-size:8px;color:var(--a2);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;opacity:0.85;}
+.rh-row{display:flex;align-items:baseline;gap:3px;}
+.rh-lbl{font-size:8px;color:var(--gold);opacity:0.8;white-space:nowrap;}
+.rh-val{font-family:'EB Garamond',serif;font-size:12px;color:var(--a2);line-height:1.2;white-space:nowrap;}
+.timer-bar{display:flex;align-items:center;justify-content:center;gap:10px;padding:2px 16px 1px;flex-shrink:0;}
+.timer-display{font-family:'EB Garamond',serif;font-size:26px;color:var(--a2);
+  letter-spacing:3px;filter:drop-shadow(0 0 8px rgba(109,184,255,0.5));min-width:100px;text-align:center;}
+.timer-display.running{color:var(--gold);}
+.mala-time-float{position:fixed;pointer-events:none;z-index:200;font-family:'EB Garamond',serif;
+  font-weight:600;color:#2ECC71;text-shadow:0 0 18px rgba(46,204,113,0.95);
+  animation:mala-float-up 2s ease-out forwards;}
+@keyframes mala-float-up{0%{opacity:0;transform:translateY(0) scale(0.7);}15%{opacity:1;transform:translateY(-18px) scale(1.18);}70%{opacity:1;transform:translateY(-72px) scale(1.05);}100%{opacity:0;transform:translateY(-130px) scale(0.9);}}
+.tbtn{padding:6px 13px;border-radius:20px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
+.tbtn.start{background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;}
+.tbtn.pause{background:linear-gradient(135deg,var(--bg),var(--a));color:white;}
+.tbtn.reset{background:rgba(232,51,109,0.15);border:1px solid rgba(232,51,109,0.3);color:var(--rl);}
+.tbtn:active{transform:scale(0.94);}
+.timer-today{font-size:9px;color:var(--td);text-align:center;padding:1px 0 2px;letter-spacing:1px;flex-shrink:0;}
+.ps{padding:3px 10px;display:flex;gap:8px;flex-shrink:0;}
+.pc{flex:1;background:rgba(74,144,226,0.08);border:1px solid rgba(74,144,226,0.2);border-radius:12px;
+  padding:6px 8px;text-align:center;display:flex;flex-direction:row;align-items:center;gap:8px;}
+.pc-bar{flex-direction:column;align-items:stretch;justify-content:center;}
+.pl{font-size:9px;color:var(--td);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;}
+.lbar-pct{font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0.5px;}
+.lbar-wrap{width:100%;height:6px;background:rgba(255,215,0,0.12);border-radius:4px;overflow:hidden;}
+.lbar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold),#FFB700);transition:width 0.5s ease;width:0%;}
+.lbar-val{font-size:10px;font-family:'EB Garamond',serif;color:var(--a2);}
+.pc-text{display:flex;flex-direction:column;align-items:flex-start;flex:1;min-width:0;}
+.pd{font-size:9px;color:var(--td);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mdr{display:flex;align-items:center;justify-content:center;gap:8px;padding:2px 14px;flex-shrink:0;}
+.mdl{font-size:10px;color:var(--td);}
+.mdd{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:190px;}
+.mdt{width:7px;height:7px;border-radius:50%;background:rgba(74,144,226,0.15);border:1px solid rgba(74,144,226,0.25);transition:all 0.3s;}
+.mdt.on{background:var(--a2);border-color:var(--a);box-shadow:0 0 5px var(--a2);}
+.mdtt{font-size:12px;color:var(--tl);font-weight:600;}
+.tzr{flex:1;display:flex;align-items:stretch;margin:4px 10px 5px;min-height:0;}
+.tz{flex:1;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  position:relative;overflow:hidden;border-radius:18px;
+  background:radial-gradient(ellipse at center,rgba(34,85,204,0.22) 0%,rgba(6,13,31,0.6) 100%);
+  border:1px solid rgba(74,144,226,0.2);user-select:none;-webkit-user-select:none;}
+.fn{position:absolute;font-family:'Tiro Devanagari Hindi',serif;pointer-events:none;z-index:10;
+  animation:fu 2.4s ease-out forwards;}
+@keyframes fu{0%{opacity:0.9;transform:translateY(0) scale(1);}30%{opacity:1;transform:translateY(-80px) scale(1.15);}100%{opacity:0;transform:translateY(-260px) scale(0.85);}}
+.mf{position:absolute;inset:0;background:radial-gradient(circle,rgba(109,184,255,0.22) 0%,rgba(6,13,31,0.7) 70%);
+  pointer-events:none;opacity:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:18px;}
+.mf.show{animation:mc 3s ease-out forwards;}
+.mf-line1{font-family:'Tiro Devanagari Hindi',serif;font-size:clamp(28px,8vw,44px);color:var(--gold);
+  letter-spacing:2px;text-shadow:0 0 20px rgba(255,215,0,0.9);line-height:1.3;}
+.mf-line2{font-family:'Cinzel Decorative',serif;font-size:clamp(13px,3.5vw,19px);color:var(--a2);
+  letter-spacing:3px;margin-top:4px;}
+@keyframes mc{0%{opacity:0;transform:scale(0.85);}18%{opacity:1;transform:scale(1.03);}70%{opacity:1;}100%{opacity:0;transform:scale(1.08);}}
+/* Common */
+.vt{font-family:'Cinzel Decorative',serif;font-size:15px;color:var(--a2);text-align:center;
+  margin-bottom:16px;letter-spacing:2px;padding-top:14px;}
+.sc{background:rgba(74,144,226,0.06);border:1px solid rgba(74,144,226,0.18);border-radius:18px;
+  padding:16px;margin:0 12px 12px;}
+.sc h3{font-size:11px;color:var(--a2);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;font-weight:600;}
+.fi{width:100%;background:rgba(0,0,0,0.35);border:1px solid rgba(74,144,226,0.25);border-radius:10px;
+  padding:10px 14px;color:var(--tl);font-size:15px;font-family:'Inter',sans-serif;}
+.fi:focus{outline:none;border-color:var(--a2);}
+.fr{display:flex;gap:10px;align-items:center;margin-bottom:8px;}
+.fu{color:var(--td);font-size:12px;min-width:55px;}
+.pb{width:100%;padding:12px;background:linear-gradient(135deg,var(--bg),var(--a));border:none;border-radius:11px;
+  color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-top:5px;}
+.pb:active{opacity:0.85;}
+/* Stats */
+#vs{background:radial-gradient(ellipse at top,#06122A 0%,var(--bd) 60%);padding:0 0 80px;}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.sb{background:rgba(74,144,226,0.06);border:1px solid rgba(74,144,226,0.15);border-radius:14px;padding:13px;text-align:center;}
+.sb.wide{grid-column:span 2;}
+.sv2{font-family:'EB Garamond',serif;font-size:30px;color:var(--a2);line-height:1;}
+.sl{font-size:10px;color:var(--td);margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
+.ss{font-size:11px;color:var(--gold);margin-top:2px;}
+.cbrs{display:flex;gap:4px;align-items:flex-end;height:55px;padding:0 4px;margin-top:8px;}
+.cbc{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.cbb{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--a2),var(--bg));min-height:2px;}
+.cbl{font-size:8px;color:var(--td);}
+.rs{background:rgba(232,51,109,0.06);border:1px solid rgba(232,51,109,0.15);border-radius:18px;
+  margin:12px 12px 0;overflow:hidden;}
+.rb{width:100%;padding:11px;border-radius:11px;border:1px solid rgba(232,51,109,0.3);
+  background:rgba(232,51,109,0.08);color:var(--rl);font-size:13px;cursor:pointer;
+  font-family:'Inter',sans-serif;margin-bottom:8px;text-align:left;display:flex;align-items:center;gap:8px;}
+.rb.red{border-color:rgba(255,0,0,0.4);color:#FF6B6B;}
+.drr{display:flex;gap:8px;margin-bottom:8px;}
+.di{flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(232,51,109,0.2);border-radius:9px;
+  padding:7px 9px;color:var(--tl);font-size:12px;font-family:'Inter',sans-serif;}
+.di::-webkit-calendar-picker-indicator{filter:invert(0.7);}
+.cs-wrap{border-radius:18px;margin:0 12px 12px;overflow:hidden;}
+.cs-header{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;
+  cursor:pointer;user-select:none;-webkit-user-select:none;}
+.cs-header h3{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600;margin:0;}
+.cs-chevron{font-size:14px;transition:transform 0.3s;display:inline-block;margin-left:8px;opacity:0.7;}
+.cs-body{max-height:0;overflow:hidden;transition:max-height 0.38s ease,padding 0.3s ease;padding:0 16px;}
+.cs-body.open{max-height:2000px;padding:0 16px 16px;}
+.sg-wrap{border-radius:18px;background:rgba(74,144,226,0.05);border:1px solid rgba(74,144,226,0.15);
+  margin:0 12px 12px;overflow:hidden;}
+.sg-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+  cursor:pointer;user-select:none;-webkit-user-select:none;}
+.sg-header span{font-size:11px;color:var(--a2);letter-spacing:2px;text-transform:uppercase;font-weight:600;}
+.sg-chevron{font-size:14px;color:var(--a2);transition:transform 0.3s;display:inline-block;opacity:0.7;}
+.sg-body{max-height:0;overflow:hidden;transition:max-height 0.38s ease,padding 0.3s ease;padding:0 8px;}
+.sg-body.open{max-height:1200px;padding:0 8px 8px;}
+/* Calendar */
+#vc{background:radial-gradient(ellipse at top,#061228 0%,var(--bd) 60%);padding:0 12px 80px;}
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-top:14px;}
+.cnb{background:rgba(74,144,226,0.1);border:1px solid rgba(74,144,226,0.25);border-radius:9px;
+  color:var(--a2);width:34px;height:34px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;}
+.cmy{font-family:'Cinzel Decorative',serif;font-size:13px;color:var(--a2);}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cdl{text-align:center;font-size:10px;color:var(--td);padding:4px 0;}
+.cc{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border-radius:9px;font-size:11px;color:var(--td);background:rgba(255,255,255,0.02);cursor:pointer;}
+.cc.today{border:1px solid var(--a2);color:var(--a2);}
+.cc.hd{background:rgba(74,144,226,0.12);color:var(--tl);}
+.cc.tm{background:rgba(109,184,255,0.2);}
+.cc.occ{border-bottom:2px solid var(--gold);}
+.ccc{font-size:8px;color:var(--td);}
+.cco{font-size:7px;color:var(--gold);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Settings */
+#vset{background:var(--bd);padding:0 14px 80px;}
+.sr{display:flex;align-items:center;justify-content:space-between;padding:11px 0;
+  border-bottom:1px solid rgba(74,144,226,0.08);}
+.sr:last-child{border-bottom:none;}
+.sr label{font-size:13px;color:var(--tl);display:block;}
+.sr .sub{font-size:11px;color:var(--td);margin-top:2px;}
+.tg{width:44px;height:24px;background:rgba(255,255,255,0.1);border-radius:12px;
+  position:relative;cursor:pointer;transition:background 0.3s;flex-shrink:0;}
+.tg.on{background:var(--bg);}
+.tg::after{content:'';position:absolute;width:18px;height:18px;background:white;
+  border-radius:50%;top:3px;left:3px;transition:left 0.3s;}
+.tg.on::after{left:23px;}
+/* Brahmacharya */
+#vb{background:radial-gradient(ellipse at top,#071525 0%,var(--bd) 60%);padding:0 14px 80px;}
+.bsr{display:flex;gap:10px;margin-bottom:12px;}
+.bsb{flex:1;text-align:center;padding:14px 6px;border-radius:14px;border:1px solid;}
+.bsb.g{background:rgba(46,204,113,0.1);border-color:rgba(46,204,113,0.3);}
+.bsb.r{background:rgba(231,76,60,0.1);border-color:rgba(231,76,60,0.3);}
+.bsb .bv{font-family:'EB Garamond',serif;font-size:32px;line-height:1;}
+.bsb.g .bv{color:var(--green);}.bsb.r .bv{color:var(--red);}
+.bsb .bl{font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-top:3px;color:var(--td);}
+.bcal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px;}
+.bcl{aspect-ratio:1;border-radius:7px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;font-size:11px;cursor:pointer;border:1px solid transparent;}
+.bcl.m{background:rgba(46,204,113,0.2);border-color:rgba(46,204,113,0.4);color:var(--green);}
+.bcl.b{background:rgba(231,76,60,0.2);border-color:rgba(231,76,60,0.4);color:var(--red);}
+.bcl.e{background:rgba(255,255,255,0.03);color:var(--td);}
+.bcl.tc{border-color:var(--a2)!important;}
+.n2s{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ns{background:rgba(74,144,226,0.07);border:1px solid rgba(74,144,226,0.15);border-radius:12px;padding:11px;text-align:center;}
+.nv{font-family:'EB Garamond',serif;font-size:24px;color:var(--gold);}
+.nl{font-size:9px;color:var(--td);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+/* Stotram */
+#vst{background:radial-gradient(ellipse at top,#08102A 0%,var(--bd) 60%);padding:0 14px 80px;}
+.stc{background:rgba(74,144,226,0.06);border:1px solid rgba(74,144,226,0.18);border-radius:16px;padding:14px;margin-bottom:11px;}
+.stn{font-size:14px;color:var(--tl);font-weight:500;}
+.sts{font-size:11px;color:var(--td);margin-bottom:10px;margin-top:3px;}
+.scr{display:flex;align-items:center;gap:10px;}
+.scnt{font-family:'EB Garamond',serif;font-size:34px;color:var(--a2);min-width:55px;}
+.std2{font-size:11px;color:var(--td);}
+.sbtns{display:flex;gap:7px;margin-left:auto;}
+.sbtn{width:36px;height:36px;border-radius:9px;border:none;cursor:pointer;font-size:20px;
+  display:flex;align-items:center;justify-content:center;}
+.sbtn.p{background:rgba(74,144,226,0.2);color:var(--a2);}
+.sbtn.m{background:rgba(232,51,109,0.15);color:var(--rl);}
+.sbtn:active{transform:scale(0.88);}
+.sbtn.l{background:rgba(255,215,0,0.12);color:var(--gold);font-size:15px;width:auto;padding:0 10px;}
+.asf{background:rgba(255,215,0,0.05);border:1px dashed rgba(255,215,0,0.25);border-radius:16px;margin-bottom:12px;overflow:hidden;}
+.asf-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;user-select:none;}
+.asf-header h3{font-size:11px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;font-weight:600;margin:0;}
+.asf-chevron{font-size:14px;color:var(--gold);transition:transform 0.3s;}
+.asf-body{max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s ease;padding:0 14px;}
+.asf-body.open{max-height:600px;padding:0 14px 14px;}
+.sti{width:100%;background:rgba(0,0,0,0.35);border:1px solid rgba(74,144,226,0.25);border-radius:9px;
+  padding:9px 13px;color:var(--tl);font-size:14px;font-family:'Inter',sans-serif;margin-bottom:7px;}
+.sti:focus{outline:none;border-color:var(--a2);}
+.asb{width:100%;padding:11px;background:linear-gradient(135deg,var(--bg),var(--a));border:none;
+  border-radius:9px;color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+.dsb{background:rgba(232,51,109,0.12);border:1px solid rgba(232,51,109,0.25);border-radius:7px;
+  color:var(--rl);font-size:11px;cursor:pointer;padding:3px 8px;flex-shrink:0;}
+/* 28 Names */
+#v28{background:radial-gradient(ellipse at top,#091A30 0%,var(--bd) 60%);overflow:hidden;}
+.n28wrap{display:flex;flex-direction:column;flex:1;min-height:0;padding:0 12px 80px;overflow-y:auto;}
+.v28-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 4px;}
+.v28-title{font-family:'Cinzel Decorative',serif;font-size:14px;color:var(--a2);letter-spacing:2px;}
+.sk-icon-btn{background:rgba(232,51,109,0.12);border:1px solid rgba(232,51,109,0.35);border-radius:22px;
+  padding:6px 14px;color:var(--rose);cursor:pointer;display:flex;align-items:center;gap:6px;
+  font-family:'Inter',sans-serif;font-size:12px;font-weight:600;}
+.sk-panel{overflow:hidden;max-height:0;transition:max-height 0.38s ease;
+  background:rgba(232,51,109,0.04);border-bottom:1px solid rgba(232,51,109,0.18);}
+.sk-panel.open{max-height:70vh;overflow-y:auto;}
+.sk-panel-inner{padding:10px 14px 14px;}
+.n28stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.n28tz{flex:1;background:radial-gradient(ellipse at center,rgba(34,85,204,0.22) 0%,rgba(6,13,31,0.6) 100%);
+  border:1px solid rgba(74,144,226,0.2);border-radius:22px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  cursor:pointer;user-select:none;-webkit-user-select:none;position:relative;overflow:hidden;min-height:280px;}
+.n28num{font-family:'EB Garamond',serif;font-size:15px;color:var(--td);letter-spacing:3px;margin-bottom:6px;}
+.n28name{font-family:'Hind Siliguri',serif;font-size:clamp(30px,9vw,52px);color:var(--gold);
+  font-weight:700;line-height:1.3;text-align:center;padding:0 10px;
+  text-shadow:0 0 25px rgba(255,215,0,0.8);
+  animation:nameIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+@keyframes nameIn{0%{opacity:0;transform:scale(0.7) translateY(12px);}100%{opacity:1;transform:scale(1) translateY(0);}}
+.n28meaning{font-size:12px;color:var(--a2);margin-top:6px;letter-spacing:1px;text-align:center;opacity:0.85;}
+.n28cycle{font-size:11px;color:var(--td);margin-top:10px;letter-spacing:2px;text-transform:uppercase;}
+.n28prog{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:240px;margin-top:8px;}
+.n28dot{width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.25);transition:all 0.2s;}
+.n28dot.done{background:var(--gold);border-color:var(--gold);box-shadow:0 0 5px rgba(255,215,0,0.7);}
+.n28dot.current{background:rgba(255,215,0,0.5);border-color:var(--gold);transform:scale(1.3);}
+.sk-form{background:rgba(232,51,109,0.06);border:1px solid rgba(232,51,109,0.22);border-radius:14px;padding:14px;margin-bottom:12px;}
+.sk-form h3{font-size:12px;color:var(--rose);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+.sk-ta{width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(232,51,109,0.2);border-radius:9px;
+  padding:9px 11px;color:var(--tl);font-size:13px;font-family:'Hind Siliguri',sans-serif;
+  resize:none;min-height:68px;margin-bottom:8px;outline:none;}
+.sk-row{display:flex;gap:8px;align-items:center;}
+.sk-ni{flex:0 0 72px;background:rgba(0,0,0,0.3);border:1px solid rgba(232,51,109,0.2);border-radius:9px;
+  padding:8px 10px;color:var(--tl);font-size:13px;font-family:'Inter',sans-serif;outline:none;text-align:center;}
+.sk-add{background:linear-gradient(135deg,#E8336D,#FF6B9D);border:none;border-radius:10px;
+  color:white;font-size:12px;font-weight:600;padding:9px 14px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.sk-item{background:rgba(255,182,193,0.05);border:1px solid rgba(232,51,109,0.18);border-radius:13px;padding:12px;margin-bottom:10px;}
+.sk-item.done{background:rgba(46,204,113,0.05);border-color:rgba(46,204,113,0.22);}
+.sk-wish{font-family:'Hind Siliguri',sans-serif;font-size:14px;color:var(--tl);line-height:1.55;margin-bottom:5px;}
+.sk-meta{font-size:10px;color:var(--td);margin-bottom:8px;}
+.sk-bar-wrap{background:rgba(255,255,255,0.08);border-radius:6px;height:5px;margin-bottom:5px;overflow:hidden;}
+.sk-bar{height:5px;border-radius:6px;background:linear-gradient(90deg,var(--rose),var(--rl));transition:width 0.5s ease;}
+.sk-bar.full{background:linear-gradient(90deg,#27ae60,#2ecc71);}
+.sk-prog-text{font-size:10px;color:var(--td);margin-bottom:8px;}
+.sk-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.sk-btn{font-size:10px;border-radius:7px;padding:4px 10px;cursor:pointer;border:1px solid rgba(232,51,109,0.3);background:none;color:var(--rose);}
+.sk-btn.grn{color:var(--green);border-color:rgba(46,204,113,0.35);}
+.sk-btn.grey{color:var(--td);border-color:rgba(106,143,191,0.25);}
+.sk-done-badge{font-size:10px;color:var(--green);letter-spacing:1px;font-weight:600;text-transform:uppercase;margin-bottom:4px;}
+.sk-divider{font-size:10px;color:var(--td);letter-spacing:1.5px;text-transform:uppercase;margin:14px 0 8px;text-align:center;}
+.sk-empty{text-align:center;color:var(--td);font-size:12px;padding:14px 0;}
+.cb{flex:1;padding:10px;border-radius:11px;border:1px solid rgba(74,144,226,0.2);
+  background:rgba(74,144,226,0.07);color:var(--tl);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;}
+.cb.danger{border-color:rgba(232,51,109,0.3);color:var(--rl);}
+/* Modals */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:none;align-items:flex-end;justify-content:center;}
+.mo.show{display:flex;}
+.md2{background:var(--bc);border-radius:22px 22px 0 0;padding:22px 18px calc(38px + var(--sab));width:100%;border-top:1px solid rgba(74,144,226,0.25);}
+.md2 h3{font-family:'Cinzel Decorative',serif;font-size:14px;color:var(--a2);margin-bottom:7px;text-align:center;}
+.mdd{font-size:13px;color:var(--td);text-align:center;margin-bottom:18px;}
+.mdb{width:100%;padding:13px;border-radius:11px;border:none;font-size:14px;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:9px;font-weight:500;}
+.mdb.cf{background:linear-gradient(135deg,var(--rose),#8B0000);color:white;}
+.mdb.ca{background:rgba(255,255,255,0.06);color:var(--td);}
+.lmo{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:400;display:none;align-items:flex-end;justify-content:center;}
+.lmo.show{display:flex;}
+.lmd{background:var(--bc);border-radius:22px 22px 0 0;padding:16px 16px 44px;width:100%;max-height:90vh;display:flex;flex-direction:column;border-top:2px solid rgba(109,184,255,0.3);}
+.lmh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:10px;}
+.lmt{font-family:'Hind Siliguri',serif;font-size:14px;color:var(--gold);flex:1;font-weight:700;line-height:1.5;}
+.lmx{background:rgba(255,255,255,0.08);border:none;border-radius:9px;padding:7px 14px;color:var(--td);font-size:13px;cursor:pointer;flex-shrink:0;font-family:'Inter',sans-serif;}
+.lmb{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.lyr{font-family:'Hind Siliguri',serif;font-size:15.5px;color:var(--tl);line-height:2.1;white-space:pre-wrap;}
+.bcmo{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:none;align-items:flex-end;justify-content:center;}
+.bcmo.show{display:flex;}
+.cdmo{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;display:none;align-items:flex-end;justify-content:center;}
+.cdmo.show{display:flex;}
+.cdmd{background:var(--bc);border-radius:22px 22px 0 0;padding:20px 18px calc(40px + var(--sab));width:100%;max-height:85vh;overflow-y:auto;border-top:1px solid rgba(74,144,226,0.25);}
+.cdmo-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cdmo-title{font-family:'Cinzel Decorative',serif;font-size:14px;color:var(--a2);}
+.cdmo-close{background:rgba(255,255,255,0.06);border:none;border-radius:9px;padding:6px 14px;color:var(--td);font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;}
+.cdmo-stat{background:rgba(74,144,226,0.07);border:1px solid rgba(74,144,226,0.18);border-radius:14px;padding:13px 14px;margin-bottom:10px;}
+.cdmo-stat-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:13px;color:var(--tl);}
+.cdmo-stat-val{font-family:'EB Garamond',serif;font-size:20px;color:var(--a2);margin-left:auto;}
+.cdmo-stat-val.gold{color:var(--gold);}
+.cdmo-occ{background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.2);border-radius:14px;padding:13px 14px;margin-bottom:10px;}
+.cdmo-occ-label{font-size:10px;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-weight:600;}
+.cdmo-occ-cur{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:13px;color:var(--gold);min-height:20px;}
+.cdmo-occ-del{background:none;border:none;color:rgba(232,51,109,0.7);font-size:16px;cursor:pointer;}
+.cdmo-occ-row{display:flex;gap:8px;align-items:center;}
+.cdmo-occ-in{flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,215,0,0.25);border-radius:9px;padding:8px 11px;color:var(--tl);font-size:13px;font-family:'Inter',sans-serif;outline:none;}
+.cdmo-occ-add{padding:8px 14px;border-radius:9px;border:none;background:linear-gradient(135deg,rgba(255,215,0,0.35),rgba(255,215,0,0.15));color:var(--gold);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+/* Google button / sync */
+.google-btn{width:100%;padding:12px;border-radius:11px;border:1px solid rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.08);color:var(--tl);font-size:14px;font-weight:500;
+  cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;}
+.google-btn svg{width:20px;height:20px;flex-shrink:0;}
+.sync-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(46,204,113,0.1);
+  border:1px solid rgba(46,204,113,0.25);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--green);}
+.sync-pill.syncing{background:rgba(109,184,255,0.1);border-color:rgba(109,184,255,0.25);color:var(--a2);}
+.sync-pill.error{background:rgba(232,51,109,0.1);border-color:rgba(232,51,109,0.25);color:var(--rl);}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse-dot 2s ease-in-out infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:0.35;}}
+/* Reminders */
+.rem-card{background:rgba(74,144,226,0.06);border:1px solid rgba(74,144,226,0.15);border-radius:14px;padding:13px 14px;margin-bottom:10px;}
+.rem-card-top{display:flex;align-items:center;gap:12px;}
+.rem-card-icon{font-size:22px;flex-shrink:0;width:32px;text-align:center;}
+.rem-card-info{flex:1;min-width:0;}
+.rem-card-title{font-size:13px;color:var(--tl);font-weight:600;margin-bottom:1px;}
+.rem-card-sub{font-size:10px;color:var(--td);}
+.rem-card-time{font-size:11px;color:var(--gold);margin-top:3px;font-family:'EB Garamond',serif;}
+.reminder-time-row{display:flex;align-items:center;gap:10px;margin-top:11px;padding-top:11px;border-top:1px solid rgba(74,144,226,0.12);}
+.reminder-time-input{flex:1;background:rgba(0,0,0,0.35);border:1px solid rgba(74,144,226,0.3);border-radius:10px;padding:10px 14px;color:var(--tl);font-size:16px;font-family:'Inter',sans-serif;-webkit-appearance:none;}
+.reminder-time-input::-webkit-calendar-picker-indicator{filter:invert(0.6) sepia(1) hue-rotate(190deg);}
+.reminder-save-btn{padding:10px 18px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--bg),var(--a));color:white;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
+/* Kicked out */
+.kicked-banner{position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:9999;
+  display:none;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;}
+.kicked-banner h2{font-family:'Tiro Devanagari Hindi',serif;font-size:28px;color:var(--gold);margin-bottom:16px;}
+.kicked-banner p{font-size:14px;color:var(--td);margin-bottom:24px;line-height:1.8;}
+.kicked-banner button{padding:12px 28px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--bg),var(--a));color:white;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+/* PWA guide */
+.pwa-mo{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:500;display:none;align-items:flex-end;justify-content:center;}
+.pwa-mo.show{display:flex;}
+.pwa-sheet{background:linear-gradient(180deg,#0F1E45 0%,var(--bd) 100%);border-radius:26px 26px 0 0;
+  padding:24px 20px calc(44px + var(--sab));width:100%;border-top:1px solid rgba(255,215,0,0.25);max-height:88vh;overflow-y:auto;}
+.pwa-title{font-family:'Cinzel Decorative',serif;font-size:15px;color:var(--gold);text-align:center;margin-bottom:4px;}
+.pwa-subtitle{font-size:12px;color:var(--td);text-align:center;margin-bottom:20px;}
+.pwa-step{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;padding:14px;
+  background:rgba(74,144,226,0.07);border:1px solid rgba(74,144,226,0.15);border-radius:16px;}
+.pwa-step-num{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--bg),var(--a));
+  color:white;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pwa-step-title{font-size:13px;color:var(--tl);font-weight:600;margin-bottom:3px;}
+.pwa-step-desc{font-size:11px;color:var(--td);line-height:1.55;}
+.pwa-step-desc b{color:var(--a2);}
+.pwa-note{background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.18);border-radius:13px;padding:12px 14px;font-size:11px;color:var(--gold);line-height:1.6;margin-bottom:18px;text-align:center;}
+.pwa-close{width:100%;padding:13px;border-radius:13px;border:none;background:linear-gradient(135deg,var(--bg),var(--a));color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+</style>
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div class="ls" id="ls">
+  <img class="ls-img" id="guruImg" src="" alt="Shri Hit Premanand Ji" onerror="drawFallback(this)">
+  <div class="ls-title">राधे राधे</div>
+  <div class="ls-sub">Jai Shri Radha</div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="nb active" onclick="sv('vj',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v2M12 16v2M6 12H4M20 12h-2"/></svg>
+    Jap
+  </button>
+  <button class="nb" onclick="sv('v28',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    28 Names
+  </button>
+  <button class="nb" onclick="sv('vst',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    Stotram
+  </button>
+  <button class="nb" onclick="sv('vb',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Brahma
+  </button>
+  <button class="nb" onclick="sv('vc',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    Calendar
+  </button>
+  <button class="nb" onclick="sv('vs',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+    Stats
+  </button>
+  <button class="nb" onclick="sv('vset',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Settings
+  </button>
+</nav>
+
+<!-- JAP VIEW -->
+<div class="view active" id="vj">
+  <div class="rh">
+    <div class="rh-card">
+      <div class="rh-card-title">&#127769; Brahma Muhurta</div>
+      <div class="rh-row"><span class="rh-lbl">Start</span><span class="rh-val" id="bm-start">--:--</span></div>
+      <div class="rh-row"><span class="rh-lbl">End</span><span class="rh-val" id="bm-end">--:--</span></div>
+      <div class="rh-row"><span class="rh-lbl">Sunrise</span><span class="rh-val" id="rh-sunrise">--:--</span></div>
+    </div>
+    <div class="rh-center"><div class="rn">&#2352;&#2366;&#2343;&#2366;</div></div>
+    <div class="rh-card" style="align-items:flex-end">
+      <div class="rh-card-title">&#128276; Sandhya Kal</div>
+      <div class="rh-row"><span class="rh-lbl">Start</span><span class="rh-val" id="sk-start">--:--</span></div>
+      <div class="rh-row"><span class="rh-lbl">Sunset</span><span class="rh-val" id="rh-sunset">--:--</span></div>
+      <div class="rh-row"><span class="rh-lbl">Ends</span><span class="rh-val" id="sk-end">--:--</span></div>
+    </div>
+  </div>
+  <div class="timer-bar">
+    <button class="tbtn reset" onclick="App.resetTimer()">&#8634;</button>
+    <div class="timer-display" id="timerDisplay">00:00:00</div>
+    <button class="tbtn start" id="timerBtn" onclick="App.toggleTimer()">&#9654; Start</button>
+  </div>
+  <div class="timer-today" id="timerToday">Auto-starts when you tap &middot; pauses after 6s</div>
+  <div class="ps">
+    <div class="pc pc-bar" style="position:relative;">
+      <div class="pc-text" style="width:100%">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div class="pl">Daily</div>
+          <div class="lbar-pct" style="color:var(--a2)" id="dPct">0%</div>
+        </div>
+        <div class="lbar-wrap"><div class="lbar-fill" id="dbarFill" style="background:linear-gradient(90deg,var(--a2),var(--a))"></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+          <div class="lbar-val" id="dbarDone">0</div>
+          <div class="lbar-val" id="dbarTarget" style="color:var(--td)">/ &mdash;</div>
+        </div>
+        <div class="pd" id="dDet" style="margin-top:2px;">&mdash; malas</div>
+      </div>
+      <div style="position:absolute;bottom:6px;right:6px;display:flex;align-items:center;gap:4px;">
+        <div id="jms" style="font-family:'EB Garamond',serif;font-size:16px;color:#FFD700;line-height:1;text-shadow:0 0 8px rgba(255,215,0,0.6);">0</div>
+        <button onclick="App.undo1()" style="background:rgba(232,51,109,0.15);border:1px solid rgba(232,51,109,0.3);border-radius:7px;color:var(--rl);font-size:13px;width:24px;height:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;">&#8617;</button>
+      </div>
+    </div>
+    <div class="pc pc-bar">
+      <div class="pc-text" style="width:100%">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div class="pl">Lifetime</div>
+          <div class="lbar-pct" id="lPct">0%</div>
+        </div>
+        <div class="lbar-wrap"><div class="lbar-fill" id="lbarFill"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;">
+          <div class="lbar-val" id="lbarDone">0</div>
+          <div class="lbar-val" id="lbarTarget" style="color:var(--td)">/ &mdash;</div>
+        </div>
+        <div class="pd" id="lDet" style="margin-top:2px;">&mdash; malas done</div>
+      </div>
+    </div>
+  </div>
+  <div class="mdr">
+    <span class="mdl">Mala:</span>
+    <div class="mdd" id="mdots"></div>
+    <span class="mdtt" id="mtot">0</span>
+  </div>
+  <div class="tzr">
+    <div class="tz" id="tz" ontouchstart="App.ht(event)" onmousedown="App.ht(event)">
+      <div class="mf" id="mf">
+        <div class="mf-line1">Radha Ballabh</div>
+        <div class="mf-line2">Sri Harivansh</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 28 NAMES -->
+<div class="view" id="v28">
+  <div class="v28-header">
+    <div class="v28-title">28 Names of Radha</div>
+    <button class="sk-icon-btn" onclick="toggleSankalp()">&#128591; Wishes <span id="skChevron">&#9660;</span></button>
+  </div>
+  <div class="sk-panel" id="skCollapse">
+    <div class="sk-panel-inner">
+      <div class="sk-form">
+        <h3>&#127800; Add a Wish / Sankalp</h3>
+        <textarea class="sk-ta" id="skWish" placeholder="Radha Rani ke paas apni ichha likhein..."></textarea>
+        <div class="sk-row">
+          <input type="number" class="sk-ni" id="skTarget" min="1" placeholder="10">
+          <span style="font-size:11px;color:var(--td);flex:1">cycles target</span>
+          <button class="sk-add" onclick="addSankalp()">&#128591; Add</button>
+        </div>
+      </div>
+      <div id="skList"></div>
+    </div>
+  </div>
+  <div class="n28wrap">
+    <div class="n28stats">
+      <div class="ns"><div class="nv" id="n28t">0</div><div class="nl">Today</div></div>
+      <div class="ns"><div class="nv" id="n28tot">0</div><div class="nl">Cycles</div></div>
+      <div class="ns"><div class="nv" id="n28w" style="color:var(--gold)">0</div><div class="nl">Malas</div></div>
+    </div>
+    <div class="n28tz" id="tz28" ontouchstart="App.h28(event)" onmousedown="App.h28(event)">
+      <div class="n28num" id="n28num">&#2535;</div>
+      <div class="n28name" id="n28name">&#2480;&#2494;&#2471;&#2494;</div>
+      <div class="n28meaning" id="n28meaning">The Supreme Beloved</div>
+      <div class="n28cycle" id="n28cycle">Cycle 0 &middot; tap to begin</div>
+      <div class="n28prog" id="n28prog"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="cb danger" onclick="App.undo28()">&#8617; Undo</button>
+      <button class="cb danger" onclick="cr2('28today')">&#8634; Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- STOTRAM -->
+<div class="view" id="vst">
+  <div class="vt">Stotram Tracker</div>
+  <div class="asf">
+    <div class="asf-header" onclick="toggleAsfForm()">
+      <h3>&#10133; Add Your Stotram</h3>
+      <span class="asf-chevron" id="asfChevron">&#9660;</span>
+    </div>
+    <div class="asf-body" id="asfBody">
+      <input type="text" class="sti" id="snIn" placeholder="Stotram name (required)" style="margin-top:4px">
+      <input type="text" class="sti" id="ssIn" placeholder="Short description (optional)">
+      <textarea class="sti" id="slIn" rows="5" placeholder="Paste lyrics here (optional)" style="resize:vertical;min-height:90px;font-family:'Hind Siliguri',serif;font-size:14px;line-height:1.8"></textarea>
+      <button class="asb" onclick="addSt()">Add Stotram</button>
+    </div>
+  </div>
+  <div id="stList"></div>
+</div>
+
+<!-- BRAHMACHARYA -->
+<div class="view" id="vb">
+  <div class="vt">Brahmacharya</div>
+  <div class="bsr">
+    <div class="bsb g"><div class="bv" id="bcs">0</div><div class="bl">Current Streak</div></div>
+    <div class="bsb g"><div class="bv" id="bbs">0</div><div class="bl">Best Streak</div></div>
+    <div class="bsb r"><div class="bv" id="bbc">0</div><div class="bl">Total Breaks</div></div>
+  </div>
+  <div style="margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:7px">
+      <button class="cnb" onclick="cbm(-1)">&#8249;</button>
+      <div class="cmy" id="bmy"></div>
+      <button class="cnb" onclick="cbm(1)">&#8250;</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:5px">
+      <div style="text-align:center;font-size:10px;color:var(--td)">Su</div><div style="text-align:center;font-size:10px;color:var(--td)">Mo</div>
+      <div style="text-align:center;font-size:10px;color:var(--td)">Tu</div><div style="text-align:center;font-size:10px;color:var(--td)">We</div>
+      <div style="text-align:center;font-size:10px;color:var(--td)">Th</div><div style="text-align:center;font-size:10px;color:var(--td)">Fr</div>
+      <div style="text-align:center;font-size:10px;color:var(--td)">Sa</div>
+    </div>
+    <div class="bcal" id="bcal"></div>
+  </div>
+  <div class="sc" style="margin:0 0 12px">
+    <h3>&#128202; Summary</h3>
+    <div class="n2s">
+      <div class="ns"><div class="nv" style="color:var(--green)" id="bmd">0</div><div class="nl">Maintained</div></div>
+      <div class="ns"><div class="nv" style="color:var(--red)" id="bbd">0</div><div class="nl">Broken</div></div>
+      <div class="ns"><div class="nv" style="color:var(--red)" id="btm">0</div><div class="nl">Total Count</div></div>
+      <div class="ns"><div class="nv" style="color:var(--a2)" id="bmp">0%</div><div class="nl">Success</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CALENDAR -->
+<div class="view" id="vc">
+  <div class="vt">Jap Calendar</div>
+  <div class="ch">
+    <button class="cnb" onclick="chm(-1)">&#8249;</button>
+    <div class="cmy" id="cmy"></div>
+    <button class="cnb" onclick="chm(1)">&#8250;</button>
+  </div>
+  <div class="cg" id="cg">
+    <div class="cdl">Sun</div><div class="cdl">Mon</div><div class="cdl">Tue</div>
+    <div class="cdl">Wed</div><div class="cdl">Thu</div><div class="cdl">Fri</div><div class="cdl">Sat</div>
+  </div>
+  <div style="padding:8px 0 4px;font-size:11px;color:var(--td);text-align:center">Tap a date to see details</div>
+</div>
+
+<!-- CALENDAR DAY SHEET -->
+<div class="cdmo" id="cdmo" onclick="if(event.target===this)closeDaySheet()">
+  <div class="cdmd">
+    <div class="cdmo-hdr">
+      <div class="cdmo-title" id="cdmoTitle">&mdash;</div>
+      <button class="cdmo-close" onclick="closeDaySheet()">&#10005; Close</button>
+    </div>
+    <div class="cdmo-stat">
+      <div class="cdmo-stat-row">&#128255; Jap <span class="cdmo-stat-val" id="cdmoJap">0</span></div>
+      <div class="cdmo-stat-row">&#128081; Malas <span class="cdmo-stat-val gold" id="cdmoMala">0</span></div>
+      <div class="cdmo-stat-row">&#9201; Time <span class="cdmo-stat-val" id="cdmoTime">&mdash;</span></div>
+    </div>
+    <div class="cdmo-occ">
+      <div class="cdmo-occ-label">&#128332; Occasion</div>
+      <div class="cdmo-occ-cur" id="cdmoOccCur"><span style="color:var(--td);font-style:italic">None</span></div>
+      <div class="cdmo-occ-row">
+        <input type="text" class="cdmo-occ-in" id="cdmoOccIn" placeholder="e.g. Janmashtami...">
+        <button class="cdmo-occ-add" onclick="addOccasionFromSheet()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="view" id="vs">
+  <div class="vt">Jap Summary</div>
+  <div class="sg-wrap">
+    <div class="sg-header" onclick="toggleCs('sgStats','sgChev')">
+      <span>&#128202; Summary Stats</span><span class="sg-chevron" id="sgChev">&#9660;</span>
+    </div>
+    <div class="sg-body open" id="sgStats">
+      <div class="sg" style="margin-bottom:8px">
+        <div class="sb"><div class="sv2" id="sTod">0</div><div class="sl">Today</div><div class="ss" id="sTodM">0 malas</div></div>
+        <div class="sb"><div class="sv2" id="sWk">0</div><div class="sl">This Week</div><div class="ss" id="sWkM">0 malas</div></div>
+        <div class="sb"><div class="sv2" id="sMo">0</div><div class="sl">This Month</div><div class="ss" id="sMoM">0 malas</div></div>
+        <div class="sb"><div class="sv2" id="sTot">0</div><div class="sl">Total</div><div class="ss" id="sTotM">0 malas</div></div>
+        <div class="sb wide"><div class="sl" style="font-size:11px">Last 7 Days</div><div class="cbrs" id="cbrs"></div></div>
+        <div class="sb"><div class="sv2" id="sStr">0</div><div class="sl">Streak</div><div class="ss">&#128293; Days</div></div>
+        <div class="sb"><div class="sv2" id="sBest">0</div><div class="sl">Best Day</div><div class="ss">Personal best</div></div>
+        <div class="sb wide" style="background:rgba(255,215,0,0.05);border-color:rgba(255,215,0,0.15)">
+          <div class="sl" style="color:var(--gold);margin-bottom:10px">&#9201; JAP TIME</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div style="text-align:center"><div style="font-family:'EB Garamond',serif;font-size:20px;color:var(--gold)" id="tTod">0m</div><div style="font-size:9px;color:var(--td)">Today</div></div>
+            <div style="text-align:center"><div style="font-family:'EB Garamond',serif;font-size:20px;color:var(--gold)" id="tWk">0m</div><div style="font-size:9px;color:var(--td)">Week</div></div>
+            <div style="text-align:center"><div style="font-family:'EB Garamond',serif;font-size:20px;color:var(--gold)" id="tMo">0m</div><div style="font-size:9px;color:var(--td)">Month</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cs-wrap" style="background:rgba(46,204,113,0.04);border:1px solid rgba(46,204,113,0.18)">
+    <div class="cs-header" onclick="toggleCs('malaLogBody','malaLogChev')">
+      <h3 style="color:var(--green)">&#128255; Today Mala Log <span id="malaLogCount"></span></h3>
+      <span class="cs-chevron" id="malaLogChev" style="color:var(--green)">&#9660;</span>
+    </div>
+    <div class="cs-body open" id="malaLogBody">
+      <div id="malaLogAvg" style="display:none"></div>
+      <div id="malaLogList"><div style="font-size:11px;color:var(--td);text-align:center;padding:6px 0">No malas yet today</div></div>
+    </div>
+  </div>
+  <div class="cs-wrap" style="background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.2)">
+    <div class="cs-header" onclick="toggleCs('addJapTodayBody','addJapTodayChev')">
+      <h3 style="color:var(--green)">&#9997;&#65039; Add Jap (Today)</h3>
+      <span class="cs-chevron" id="addJapTodayChev" style="color:var(--green)">&#9660;</span>
+    </div>
+    <div class="cs-body" id="addJapTodayBody">
+      <div class="fr"><input type="number" class="fi" id="manualJapIn" placeholder="Number of jap" min="1"><span class="fu">jap</span></div>
+      <div style="font-size:11px;color:var(--td);margin-bottom:8px">= <span id="manualMalaPreview">0</span> malas</div>
+      <button class="pb" onclick="addManualJap()" style="background:linear-gradient(135deg,#27ae60,#2ecc71)">&#10133; Add to Today</button>
+    </div>
+  </div>
+  <div class="cs-wrap" style="background:rgba(109,184,255,0.05);border:1px solid rgba(109,184,255,0.2)">
+    <div class="cs-header" onclick="toggleCs('prevJapBody','prevJapChev')">
+      <h3 style="color:var(--a2)">&#128220; Previous Jap (Lifetime)</h3>
+      <span class="cs-chevron" id="prevJapChev" style="color:var(--a2)">&#9660;</span>
+    </div>
+    <div class="cs-body" id="prevJapBody">
+      <div class="fr"><input type="number" class="fi" id="prevJapIn" placeholder="e.g. 50000" min="1"><span class="fu">jap</span></div>
+      <div style="font-size:11px;color:var(--td);margin-bottom:8px">= <span id="prevMalaPreview">0</span> malas</div>
+      <button class="pb" onclick="addPrevJap()" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)">&#128255; Add to Lifetime</button>
+    </div>
+  </div>
+  <div class="cs-wrap" style="background:rgba(232,51,109,0.05);border:1px solid rgba(232,51,109,0.2)">
+    <div class="cs-header" onclick="toggleCs('deductTodayBody','deductTodayChev')">
+      <h3 style="color:var(--rl)">&#9986;&#65039; Deduct Jap Today</h3>
+      <span class="cs-chevron" id="deductTodayChev" style="color:var(--rl)">&#9660;</span>
+    </div>
+    <div class="cs-body" id="deductTodayBody">
+      <div class="fr"><input type="number" class="fi" id="deductTodayIn" placeholder="Number to deduct" min="1"><span class="fu">jap</span></div>
+      <button class="pb" onclick="deductTodayJap()" style="background:linear-gradient(135deg,#c0392b,#e74c3c)">&#9986;&#65039; Deduct</button>
+    </div>
+  </div>
+  <div class="rs">
+    <div class="cs-header" onclick="toggleCs('resetBody','resetChev')" style="padding:13px 16px">
+      <h3 style="color:var(--rl);margin:0;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600">&#128260; Reset Data</h3>
+      <span class="cs-chevron" id="resetChev" style="color:var(--rl)">&#9660;</span>
+    </div>
+    <div class="cs-body" id="resetBody">
+      <button class="rb" onclick="cr2('today')">&#127773; Reset Today</button>
+      <div style="font-size:11px;color:var(--td);margin-bottom:8px">Date range reset:</div>
+      <div class="drr"><input type="date" class="di" id="rfrom"><input type="date" class="di" id="rto"></div>
+      <button class="rb" onclick="cr2('range')">Delete range</button>
+      <button class="rb red" style="margin-top:4px" onclick="cr2('all')">&#9888;&#65039; Reset All Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="view" id="vset">
+  <div class="vt">Settings</div>
+  <div style="background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.2);border-radius:14px;padding:11px 14px;margin:0 0 12px;font-size:11px;color:var(--gold);line-height:1.6;text-align:center">
+    &#128274; <strong>One Device at a Time</strong> &mdash; signing in here signs out other devices automatically.
+  </div>
+  <div class="sc" id="fbCard">
+    <h3>&#9729;&#65039; Cloud Sync</h3>
+    <div id="fbLoggedOut">
+      <p style="font-size:12px;color:var(--td);margin-bottom:14px">Sign in with Google to sync across devices.</p>
+      <button class="google-btn" onclick="fbSignInGoogle()">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Sign in with Google
+      </button>
+      <div id="fbErr" style="font-size:12px;color:var(--red);margin-top:6px;text-align:center"></div>
+    </div>
+    <div id="fbLoggedIn" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--bg),var(--a));display:flex;align-items:center;justify-content:center;font-size:16px">&#128591;</div>
+        <div>
+          <div style="font-size:13px;color:var(--tl);font-weight:500" id="fbUserEmail"></div>
+          <div style="font-size:11px;color:var(--green)">&#10003; Active on this device</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-bottom:12px">
+        <span class="sync-pill" id="syncPill"><span class="sync-dot"></span><span id="syncPillText">Ready</span></span>
+      </div>
+      <button onclick="fbSignOut()" style="width:100%;padding:9px;border-radius:11px;border:1px solid rgba(232,51,109,0.3);background:rgba(232,51,109,0.08);color:var(--rl);font-size:13px;cursor:pointer">Sign Out</button>
+    </div>
+  </div>
+  <div class="sc">
+    <h3>&#128255; Mala Size &amp; Targets</h3>
+    <div class="fr"><input type="number" class="fi" id="msIn" min="1" placeholder="108"><span class="fu">per mala</span></div>
+    <button class="pb" onclick="svm()" style="margin-bottom:12px">Save Mala Size</button>
+    <div class="fr"><input type="number" class="fi" id="dtIn" placeholder="Daily target"><span class="fu">/ day</span></div>
+    <div style="font-size:11px;color:var(--td);margin-bottom:8px">= <span id="dtMala">0</span> malas / day</div>
+    <button class="pb" onclick="svt('d')" style="margin-bottom:12px">Save Daily Target</button>
+    <div class="fr"><input type="number" class="fi" id="ltIn" placeholder="Lifetime target"><span class="fu">total</span></div>
+    <div style="font-size:11px;color:var(--td);margin-bottom:8px">= <span id="ltMala">0</span> malas</div>
+    <button class="pb" onclick="svt('l')">Save Lifetime Target</button>
+  </div>
+  <div class="sc">
+    <h3>&#128276; Preferences</h3>
+    <div class="sr"><div><label>Vibration</label><div class="sub">Haptic on each tap</div></div><div class="tg on" id="tgVib" onclick="tgs('vib')"></div></div>
+    <div class="sr"><div><label>Bell Sound</label><div class="sub">Bell after completing a mala</div></div><div class="tg on" id="tgSnd" onclick="tgs('sound')"></div></div>
+    <button onclick="testSound()" style="padding:7px 14px;border-radius:20px;border:1px solid rgba(74,144,226,0.3);background:rgba(74,144,226,0.12);color:var(--a2);font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;margin-top:6px">&#128276; Test Bell</button>
+  </div>
+  <div class="sc" style="background:rgba(255,215,0,0.04);border-color:rgba(255,215,0,0.18)">
+    <h3 style="color:var(--gold)">&#9200; Daily Reminders</h3>
+    <div class="rem-card">
+      <div class="rem-card-top">
+        <div class="rem-card-icon">&#127748;</div>
+        <div class="rem-card-info"><div class="rem-card-title">Brahma Muhurta</div><div class="rem-card-sub">5 min before (auto GPS)</div><div class="rem-card-time" id="remTimeBrahma">&mdash; detecting</div></div>
+        <div class="tg" id="tgBrahma" onclick="toggleReminderType('brahma')"></div>
+      </div>
+    </div>
+    <div class="rem-card">
+      <div class="rem-card-top">
+        <div class="rem-card-icon">&#127749;</div>
+        <div class="rem-card-info"><div class="rem-card-title">Sandhyakal</div><div class="rem-card-sub">5 min before sunset (GPS)</div><div class="rem-card-time" id="remTimeSandhya">&mdash; detecting</div></div>
+        <div class="tg" id="tgSandhya" onclick="toggleReminderType('sandhya')"></div>
+      </div>
+    </div>
+    <div class="rem-card">
+      <div class="rem-card-top">
+        <div class="rem-card-icon">&#128336;</div>
+        <div class="rem-card-info"><div class="rem-card-title">Custom Time</div><div class="rem-card-sub">Set your own time</div><div class="rem-card-time" id="remTimeManual">Not set</div></div>
+        <div class="tg" id="tgManual" onclick="toggleReminderType('manual')"></div>
+      </div>
+      <div class="reminder-time-row" id="reminderTimeRow" style="display:none">
+        <input type="time" class="reminder-time-input" id="reminderTimeIn" value="06:00">
+        <button class="reminder-save-btn" onclick="saveManualReminderTime()">Save</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--td);text-align:center;margin-top:4px" id="remLocStatus"></div>
+  </div>
+  <div class="sc">
+    <h3>&#128190; Backup &amp; Restore</h3>
+    <button class="pb" onclick="exportAllData()" style="background:linear-gradient(135deg,#1a6b3c,#27ae60);margin-bottom:10px">&#128229; Export Data</button>
+    <label style="display:block;width:100%;padding:10px;border-radius:11px;border:1px dashed rgba(74,144,226,0.4);background:rgba(74,144,226,0.06);color:var(--a2);font-size:13px;text-align:center;cursor:pointer;font-family:'Inter',sans-serif;box-sizing:border-box">
+      &#128228; Restore from Backup
+      <input type="file" id="restoreFileIn" accept=".json" style="display:none" onchange="importAllData(this)">
+    </label>
+    <div id="restoreStatus" style="font-size:12px;margin-top:8px;text-align:center;color:var(--green);min-height:18px"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="mo" id="mo">
+  <div class="md2">
+    <h3 id="moT">Are you sure?</h3>
+    <p class="mdd" id="moD"></p>
+    <button class="mdb cf" id="moCf">Yes, Reset</button>
+    <button class="mdb ca" onclick="cm()">Cancel</button>
+  </div>
+</div>
+
+<!-- LYRICS MODAL -->
+<div class="lmo" id="lmo" onclick="if(event.target===this)closeLyrics()">
+  <div class="lmd">
+    <div class="lmh"><div class="lmt" id="lmTitle"></div><button class="lmx" onclick="closeLyrics()">&#10005; Close</button></div>
+    <div class="lmb" id="lmb"><pre class="lyr" id="lyrBody"></pre></div>
+  </div>
+</div>
+
+<!-- BRAHMACHARYA MODAL -->
+<div class="bcmo" id="bcmo">
+  <div class="md2">
+    <h3 id="bcmoT">Edit Day</h3><p class="mdd" id="bcmoD"></p>
+    <div id="bcmoBrkRow" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <label style="font-size:13px;color:var(--tl);flex:1">Count:</label>
+      <input type="number" id="bcmoCnt" value="1" min="1" style="width:70px;background:rgba(0,0,0,0.3);border:1px solid rgba(231,76,60,0.3);border-radius:9px;padding:7px 11px;color:var(--tl);font-size:15px;text-align:center;font-family:'Inter',sans-serif;">
+    </div>
+    <button class="mdb cf" id="bcmoBrk">&#10060; Mark as Broken</button>
+    <button class="mdb" id="bcmoRst" style="background:rgba(46,204,113,0.15);color:var(--green);border:1px solid rgba(46,204,113,0.3);margin-bottom:9px">&#9989; Restore</button>
+    <button class="mdb ca" onclick="document.getElementById('bcmo').classList.remove('show')">Cancel</button>
+  </div>
+</div>
+
+<!-- PWA GUIDE -->
+<div class="pwa-mo" id="pwaMo" onclick="if(event.target===this)closePwaGuide()">
+  <div class="pwa-sheet">
+    <div class="pwa-title">&#128242; Install as App</div>
+    <div class="pwa-subtitle">Install to enable daily reminders</div>
+    <div class="pwa-note">&#128276; Notifications only work from the <b style="color:var(--gold)">home screen icon</b></div>
+    <div class="pwa-step"><div class="pwa-step-num">1</div><div><div class="pwa-step-title">Open in Chrome</div><div class="pwa-step-desc">Use <b>Google Chrome</b> on Android</div></div></div>
+    <div class="pwa-step"><div class="pwa-step-num">2</div><div><div class="pwa-step-title">Menu &rarr; Add to Home screen</div><div class="pwa-step-desc">Tap <b>&#8942;</b> then <b>Add to Home screen</b></div></div></div>
+    <div class="pwa-step"><div class="pwa-step-num">3</div><div><div class="pwa-step-title">Always open from icon</div><div class="pwa-step-desc">Open from your home screen for reminders to work &#128591;</div></div></div>
+    <button class="pwa-close" onclick="closePwaGuide()">&#128591; Got it!</button>
+  </div>
+</div>
+
+<!-- KICKED OUT BANNER -->
+<div class="kicked-banner" id="kickedBanner" style="display:none">
+  <h2>&#2352;&#2366;&#2343;&#2375; &#2352;&#2366;&#2343;&#2375; &#128591;</h2>
+  <p>You have been signed in on another device.<br>Only one device can be active at a time.<br><br>Please sign in again to continue.</p>
+  <button onclick="dismissKicked()">Sign In Again</button>
+</div>
+
+<script>
+
+// ═══════════════════════════════════════════════
+// SERVICE WORKER REGISTRATION
+// ═══════════════════════════════════════════════
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./sw.js",{scope:"./"})
+      .then(r=>console.log("SW ok",r.scope))
+      .catch(e=>console.warn("SW fail",e.message));
+  });
+}
+
+// ═══════════════════════════════════════════════
+// PWA MANIFEST — standalone (NOT fullscreen — avoids launcher crash)
+// ═══════════════════════════════════════════════
+function buildPwaManifest(){
+  const img=document.getElementById("guruImg");
+  function attach(){
+    try{
+      const c=document.createElement("canvas");c.width=c.height=512;
+      const ctx=c.getContext("2d");
+      ctx.fillStyle="#060D1F";ctx.fillRect(0,0,512,512);
+      ctx.save();ctx.beginPath();ctx.arc(256,256,256,0,Math.PI*2);ctx.clip();
+      try{
+        const s=Math.min(img.naturalWidth||512,img.naturalHeight||512);
+        ctx.drawImage(img,(img.naturalWidth-s)/2,0,s,s,0,0,512,512);
+      }catch(e){}
+      ctx.restore();
+      ctx.strokeStyle="rgba(255,215,0,0.55)";ctx.lineWidth=15;
+      ctx.beginPath();ctx.arc(256,256,248,0,Math.PI*2);ctx.stroke();
+      const url=c.toDataURL("image/png");
+      const mf={
+        name:"Radha Naam Jap",short_name:"Radha Jap",
+        description:"Jai Shri Radha",
+        start_url:"./index.html",scope:"./",
+        display:"standalone",
+        orientation:"portrait-primary",
+        background_color:"#060D1F",theme_color:"#060D1F",
+        icons:[{src:url,sizes:"512x512",type:"image/png",purpose:"any maskable"},{src:url,sizes:"192x192",type:"image/png",purpose:"any maskable"}]
+      };
+      const blob=new Blob([JSON.stringify(mf)],{type:"application/manifest+json"});
+      const lnk=document.createElement("link");lnk.rel="manifest";lnk.href=URL.createObjectURL(blob);document.head.appendChild(lnk);
+      const ati=document.createElement("link");ati.rel="apple-touch-icon";ati.sizes="512x512";ati.href=url;document.head.appendChild(ati);
+      const ico=document.createElement("link");ico.rel="icon";ico.type="image/png";ico.href=url;document.head.appendChild(ico);
+    }catch(e){}
+  }
+  if(img&&img.complete&&img.naturalWidth)attach();
+  else if(img){img.addEventListener("load",attach);img.addEventListener("error",()=>{drawFallback(img);setTimeout(attach,100);});}
+  else setTimeout(buildPwaManifest,100);
+}
+
+function drawFallback(img){
+  try{
+    const c=document.createElement("canvas");c.width=c.height=440;
+    const ctx=c.getContext("2d");
+    const bg=ctx.createRadialGradient(220,180,10,220,220,220);
+    bg.addColorStop(0,"#0A1535");bg.addColorStop(1,"#060D1F");
+    ctx.fillStyle=bg;ctx.fillRect(0,0,440,440);
+    ctx.beginPath();ctx.arc(220,220,210,0,Math.PI*2);
+    ctx.strokeStyle="rgba(255,215,0,0.6)";ctx.lineWidth=4;ctx.stroke();
+    ctx.fillStyle="rgba(255,215,0,0.15)";ctx.beginPath();ctx.arc(220,220,160,0,Math.PI*2);ctx.fill();
+    ctx.font="bold 120px serif";ctx.fillStyle="rgba(255,215,0,0.85)";
+    ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("ॐ",220,210);
+    ctx.font="bold 20px serif";ctx.fillStyle="rgba(255,215,0,0.9)";
+    ctx.fillText("Shri Hit Premanand Ji",220,310);
+    ctx.font="16px serif";ctx.fillStyle="rgba(109,184,255,0.8)";
+    ctx.fillText("Jai Shri Radha",220,345);
+    img.src=c.toDataURL("image/png");
+  }catch(e){}
+}
+
+window.addEventListener("load",function(){
+  const img=document.getElementById("guruImg");
+  if(img&&(!img.complete||img.naturalWidth===0))drawFallback(img);
+});
+
+// ═══════════════════════════════════════════════
+// APP STATE + INDEXEDDB
+// ═══════════════════════════════════════════════
+const App={
+  S:{tk:'',ms:108,dt:0,lt:0,cfg:{vib:true,sound:true},history:{},h28:{},stotrams:{},brahma:{},customSt:[],timerHistory:{},sankalpas:[],occasions:{},syncBaseline:{},syncBaseline28:{},syncBaselineTimer:{},migrationV2Done:false},
+  lmc:0,lm28:0,timerRunning:false,timerSeconds:0,timerInterval:null,timerSavedSeconds:0,autoStopTimeout:null,malaSessionStart:0,fbDebouncePush:null,db:null,
+  async initDB(){return new Promise((res,rej)=>{const req=indexedDB.open('RadhaJapDB',3);req.onupgradeneeded=e=>{const db=e.target.result;['state','history','h28','timerHistory','malaLog'].forEach(s=>{if(!db.objectStoreNames.contains(s))db.createObjectStore(s);});};req.onsuccess=e=>{this.db=e.target.result;res();};req.onerror=()=>rej(req.error);});},
+  async dbGet(s,k){if(!this.db)return null;return new Promise(res=>{const tx=this.db.transaction(s,'readonly');const r=tx.objectStore(s).get(k);r.onsuccess=()=>res(r.result??null);r.onerror=()=>res(null);});},
+  async dbPut(s,k,v){if(!this.db)return;return new Promise(res=>{const tx=this.db.transaction(s,'readwrite');tx.objectStore(s).put(v,k);tx.oncomplete=res;});},
+  async dbGetAll(s){if(!this.db)return{};return new Promise(res=>{const tx=this.db.transaction(s,'readonly');const os=tx.objectStore(s);const result={};const req=os.openCursor();req.onsuccess=e=>{const c=e.target.result;if(c){result[c.key]=c.value;c.continue();}else res(result);};req.onerror=()=>res({});});},
+  async save(){await this.dbPut('state','main',{ms:this.S.ms,dt:this.S.dt,lt:this.S.lt,cfg:this.S.cfg,stotrams:this.S.stotrams,brahma:this.S.brahma,customSt:this.S.customSt,sankalpas:this.S.sankalpas,occasions:this.S.occasions,syncBaseline:this.S.syncBaseline,syncBaseline28:this.S.syncBaseline28,syncBaselineTimer:this.S.syncBaselineTimer,migrationV2Done:this.S.migrationV2Done});const tk=this.S.tk;if(this.S.history[tk]!==undefined)await this.dbPut('history',tk,this.S.history[tk]);if(this.S.h28[tk]!==undefined)await this.dbPut('h28',tk,this.S.h28[tk]);if(this.S.timerHistory[tk]!==undefined)await this.dbPut('timerHistory',tk,this.S.timerHistory[tk]);if(this.S.malaLog)await this.dbPut('malaLog','today',{date:tk,log:this.S.malaLog});try{localStorage.setItem('rjap5',JSON.stringify(this.S));}catch(e){}},
+  async load(){await this.initDB();this.S.tk=this.getTk();const main=await this.dbGet('state','main');if(main)Object.assign(this.S,main);else{try{const ls=localStorage.getItem('rjap5');if(ls){const d=JSON.parse(ls);Object.assign(this.S,d);}}catch(e){}}
+    this.S.history=await this.dbGetAll('history');this.S.h28=await this.dbGetAll('h28');this.S.timerHistory=await this.dbGetAll('timerHistory');
+    try{const ls=localStorage.getItem('rjap5');if(ls){const d=JSON.parse(ls);if(d.history)for(const k in d.history)if(!this.S.history[k])this.S.history[k]=d.history[k];if(d.h28)for(const k in d.h28)if(!this.S.h28[k])this.S.h28[k]=d.h28[k];if(d.timerHistory)for(const k in d.timerHistory)if(!this.S.timerHistory[k])this.S.timerHistory[k]=d.timerHistory[k];}}catch(e){}
+    if(!this.S.history[this.S.tk])this.S.history[this.S.tk]=0;if(!this.S.h28[this.S.tk])this.S.h28[this.S.tk]=0;if(!this.S.stotrams)this.S.stotrams={};if(!this.S.brahma)this.S.brahma={};if(!this.S.customSt)this.S.customSt=[];if(!this.S.timerHistory)this.S.timerHistory={};if(!this.S.sankalpas)this.S.sankalpas=[];if(!this.S.occasions)this.S.occasions={};
+    const mlr=await this.dbGet('malaLog','today');this.S.malaLog=(mlr&&mlr.date===this.S.tk)?mlr.log||[]:[];
+    STLIST.forEach(x=>{if(!this.S.stotrams[x.id])this.S.stotrams[x.id]={};});},
+  getTk(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');},
+  gTod(){return this.S.history[this.S.tk]||0;},
+  gTot(){return Object.values(this.S.history).reduce((a,b)=>a+b,0);},
+  vib(pat){if(!this.S.cfg.vib)return;if(navigator.vibrate){try{navigator.vibrate(pat);return;}catch(e){}}},
+  fmtTime(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sc).padStart(2,'0');},
+  startTimer(){if(this.timerRunning)return;this.timerRunning=true;document.getElementById('timerDisplay').classList.add('running');document.getElementById('timerBtn').textContent='⏸ Pause';document.getElementById('timerBtn').className='tbtn pause';this.timerInterval=setInterval(()=>{this.timerSeconds++;document.getElementById('timerDisplay').textContent=this.fmtTime(this.timerSeconds);this.updateTimerToday();},1000);},
+  pauseTimer(){if(!this.timerRunning)return;clearInterval(this.timerInterval);this.timerInterval=null;this.timerRunning=false;document.getElementById('timerDisplay').classList.remove('running');document.getElementById('timerBtn').textContent='▶ Resume';document.getElementById('timerBtn').className='tbtn start';this.S.timerHistory[this.S.tk]=(this.S.timerHistory[this.S.tk]||0)+(this.timerSeconds-this.timerSavedSeconds);this.timerSavedSeconds=this.timerSeconds;this.save();this.updateTimerToday();},
+  tapTimer(){this.startTimer();clearTimeout(this.autoStopTimeout);this.autoStopTimeout=setTimeout(()=>this.pauseTimer(),6000);},
+  toggleTimer(){clearTimeout(this.autoStopTimeout);if(this.timerRunning)this.pauseTimer();else this.startTimer();},
+  resetTimer(){clearTimeout(this.autoStopTimeout);clearInterval(this.timerInterval);this.timerInterval=null;this.timerRunning=false;this.timerSeconds=0;this.timerSavedSeconds=0;document.getElementById('timerDisplay').textContent='00:00:00';document.getElementById('timerDisplay').classList.remove('running');document.getElementById('timerBtn').textContent='▶ Start';document.getElementById('timerBtn').className='tbtn start';this.updateTimerToday();},
+  updateTimerToday(){const s=(this.S.timerHistory[this.S.tk]||0)+(this.timerRunning?(this.timerSeconds-this.timerSavedSeconds):0);document.getElementById('timerToday').textContent="Today's jap time: "+this.fmtTime(s);},
+  ua(){const tod=this.gTod(),tot=this.gTot(),ms=this.S.ms||108,md=Math.floor(tod/ms),inM=tod%ms,show=Math.min(ms,12);
+    document.getElementById('jms').textContent=(tod%ms)||ms;
+    const de=document.getElementById('mdots');de.innerHTML='';for(let i=0;i<show;i++){const d=document.createElement('div');d.className='mdt'+(i<Math.floor(inM*show/ms)?' on':'');de.appendChild(d);}
+    document.getElementById('mtot').textContent=md+' mala'+(md!==1?'s':'');
+    const dP=this.S.dt>0?Math.min(100,Math.round(tod/this.S.dt*100)):0;const lP=this.S.lt>0?Math.min(100,Math.round(tot/this.S.lt*100)):0;
+    document.getElementById('dPct').textContent=dP+'%';document.getElementById('dbarFill').style.width=dP+'%';
+    document.getElementById('dbarDone').textContent=fmtIN(tod);document.getElementById('dbarTarget').textContent='/ '+(this.S.dt?fmtIN(this.S.dt):'—');
+    document.getElementById('dDet').textContent=md+' malas done';
+    document.getElementById('lPct').textContent=lP+'%';document.getElementById('lbarFill').style.width=lP+'%';
+    document.getElementById('lbarDone').textContent=fmtIN(tot);document.getElementById('lbarTarget').textContent='/ '+(this.S.lt?fmtIN(this.S.lt):'—');
+    document.getElementById('lDet').textContent=Math.floor(tot/ms)+' malas done';
+    this.updateTimerToday();uStats();},
+  malaOk(){const f=document.getElementById('mf');f.classList.add('show');setTimeout(()=>f.classList.remove('show'),2800);if(this.S.cfg.sound)playSynthBell();this.vib([200,80,200,80,300]);const dur=this.timerSeconds-this.malaSessionStart;this.malaSessionStart=this.timerSeconds;if(!this.S.malaLog)this.S.malaLog=[];this.S.malaLog.push(dur);this.save();this.flashMalaDuration(dur);},
+  flashMalaDuration(sec){const disp=document.getElementById('timerDisplay');if(!disp)return;const m=Math.floor(sec/60),s=sec%60;const el=document.createElement('div');el.className='mala-time-float';el.textContent='📿 '+(m>0?m+'m ':'')+s+'s';el.style.fontSize='22px';const rect=disp.getBoundingClientRect();el.style.left=(rect.left+rect.width/2-40)+'px';el.style.top=(rect.top-4)+'px';document.body.appendChild(el);setTimeout(()=>el.remove(),2100);},
+  ht(e){e.preventDefault();const ms=this.S.ms||108;this.S.history[this.S.tk]=(this.S.history[this.S.tk]||0)+1;this.save();fbDebouncedPush();this.vib([10]);this.tapTimer();spawn(e,document.getElementById('tz'));const nm=Math.floor(this.gTod()/ms);if(nm>this.lmc){this.lmc=nm;this.malaOk();this.silentMonkBackup();}this.ua();},
+  undo1(){if((this.S.history[this.S.tk]||0)>0){this.S.history[this.S.tk]--;this.lmc=Math.floor(this.gTod()/(this.S.ms||108));this.save();fbDebouncedPush();this.ua();this.vib([10]);}},
+  h28(e){e.preventDefault();if(!this.S.h28[this.S.tk])this.S.h28[this.S.tk]=0;const posBefore=get28Pos();this.S.h28[this.S.tk]++;this.save();fbDebouncedPush();this.vib([10]);spawnName28(e,NAMES28[posBefore].name);const nm=Math.floor(this.S.h28[this.S.tk]/(this.S.ms||108));if(nm>this.lm28){this.lm28=nm;this.malaOk();this.silentMonkBackup();}if(this.S.h28[this.S.tk]%28===0)cycleDone28();u28();},
+  undo28(){if((this.S.h28[this.S.tk]||0)>0){this.S.h28[this.S.tk]--;this.lm28=Math.floor((this.S.h28[this.S.tk]||0)/(this.S.ms||108));this.save();u28();this.vib([10]);}},
+  silentMonkBackup(){if(!fbUser)return;clearTimeout(this.fbDebouncePush);fbPushDelta();gdDriveSilentBackup();}
+};
+
+// ── Helpers ──
+function playSynthBell(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[[523,0],[659,0.3],[784,0.6]].forEach(([fr,t])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=fr;o.type='sine';g.gain.setValueAtTime(0.3,ctx.currentTime+t);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+t+2);o.start(ctx.currentTime+t);o.stop(ctx.currentTime+t+2);});}catch(e){}}
+function testSound(){playSynthBell();}
+let acf=false;
+function spawn(e,zone){const r=zone.getBoundingClientRect();let x,y;if(e.touches&&e.touches[0]){x=e.touches[0].clientX-r.left;y=e.touches[0].clientY-r.top;}else{x=e.clientX-r.left;y=e.clientY-r.top;}const el=document.createElement('div');el.className='fn';el.textContent='राधा';const fs=110+Math.random()*60;el.style.left=(x-fs*0.6)+'px';el.style.top=(y-fs*0.4)+'px';el.style.fontSize=fs+'px';acf=!acf;el.style.color=acf?'#FFD700':'#6DB8FF';el.style.textShadow=acf?'0 0 30px rgba(255,215,0,0.9)':'0 0 30px rgba(109,184,255,0.9)';zone.appendChild(el);setTimeout(()=>el.remove(),2400);}
+let lt2=0;
+document.addEventListener('touchend',e=>{const n=Date.now();if(n-lt2<300)e.preventDefault();lt2=n;},{passive:false});
+function toast(msg){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:rgba(74,144,226,0.2);border:1px solid rgba(109,184,255,0.4);backdrop-filter:blur(10px);color:var(--a2);padding:9px 18px;border-radius:18px;font-size:13px;z-index:500;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;font-family:Inter,sans-serif';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';setTimeout(()=>t.style.opacity='0',2200);}
+function escHtml(t){return(t+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtIN(n){n=Math.floor(n||0);if(n===0)return'0';const CR=1e7,L=1e5,K=1e3;let p=[];const cr=Math.floor(n/CR);n%=CR;const la=Math.floor(n/L);n%=L;const k=Math.floor(n/K);n%=K;if(cr)p.push(cr+'Cr');if(la)p.push(la+'L');if(k)p.push(k+'K');if(n)p.push(n+'');return p.join(' ');}
+function setSyncPill(state,text){const p=document.getElementById('syncPill');const tx=document.getElementById('syncPillText');if(!p||!tx)return;p.className='sync-pill'+(state==='syncing'?' syncing':state==='error'?' error':'');tx.textContent=text;}
+function sv(id,btn){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');if(btn)btn.classList.add('active');if(id==='vc')renderCal();if(id==='vs')uStats();if(id==='vb')renderBcal();if(id==='vst')renderSt();if(id==='v28'){u28();render28Dots(get28Pos());}if(id==='vset'){if(App.S.dt)document.getElementById('dtIn').value=App.S.dt;if(App.S.lt)document.getElementById('ltIn').value=App.S.lt;document.getElementById('msIn').value=App.S.ms||108;initReminderUI();}}
+function svt(tp){if(tp==='d')App.S.dt=parseInt(document.getElementById('dtIn').value)||0;else App.S.lt=parseInt(document.getElementById('ltIn').value)||0;App.save();fbDebouncedPush();App.ua();toast('Target saved! 🎯');}
+function svm(){App.S.ms=parseInt(document.getElementById('msIn').value)||108;App.save();App.ua();toast('Mala size saved! 📿');}
+function tgs(k){App.S.cfg[k]=!App.S.cfg[k];const m={vib:'tgVib',sound:'tgSnd'};App.S.cfg[k]?document.getElementById(m[k]).classList.add('on'):document.getElementById(m[k]).classList.remove('on');App.save();}
+function toggleCs(bodyId,chevId){const body=document.getElementById(bodyId);const chev=document.getElementById(chevId);if(!body)return;const isOpen=body.classList.contains('open');body.classList.toggle('open',!isOpen);if(chev)chev.style.transform=isOpen?'':'rotate(180deg)';}
+function addManualJap(){const n=parseInt(document.getElementById('manualJapIn').value)||0;if(n<=0){toast('Please enter > 0');return;}App.S.history[App.S.tk]=(App.S.history[App.S.tk]||0)+n;const nm=Math.floor(App.gTod()/(App.S.ms||108));if(nm>App.lmc){App.lmc=nm;App.malaOk();}App.save();App.ua();fbDebouncedPush();document.getElementById('manualJapIn').value='';toast('Added '+n+' jap! 🙏');}
+function addPrevJap(){const n=parseInt(document.getElementById('prevJapIn').value)||0;if(n<=0){toast('Please enter > 0');return;}App.S.history['prev_'+Date.now()]=n;App.save();App.ua();fbDebouncedPush();document.getElementById('prevJapIn').value='';toast('Added '+n.toLocaleString()+' to lifetime! 🙏');}
+function deductTodayJap(){const n=parseInt(document.getElementById('deductTodayIn').value)||0;if(n<=0){toast('Enter > 0');return;}const cur=App.S.history[App.S.tk]||0;if(n>cur){toast('Cannot deduct more than '+cur);return;}App.S.history[App.S.tk]=cur-n;App.lmc=Math.floor(App.gTod()/(App.S.ms||108));App.save();App.ua();fbDebouncedPush();document.getElementById('deductTodayIn').value='';toast('Deducted '+n+' 🙏');}
+function uStats(){const ms=App.S.ms||108,tod=App.gTod(),tot=App.gTot(),now=new Date();const wk=[];for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);wk.push(d.toISOString().split('T')[0]);}const ws=wk.reduce((s,k)=>s+(App.S.history[k]||0),0);const mp=now.toISOString().slice(0,7);let ms2=0,best=0,streak=0;Object.entries(App.S.history).forEach(([k,v])=>{if(k.startsWith(mp))ms2+=v;if(v>best)best=v;});const d2=new Date();while(streak<999){const k=d2.toISOString().split('T')[0];if((App.S.history[k]||0)>0){streak++;d2.setDate(d2.getDate()-1);}else break;}
+document.getElementById('sTod').textContent=tod;document.getElementById('sTodM').textContent=Math.floor(tod/ms)+' malas';document.getElementById('sWk').textContent=ws;document.getElementById('sWkM').textContent=Math.floor(ws/ms)+' malas';document.getElementById('sMo').textContent=ms2;document.getElementById('sMoM').textContent=Math.floor(ms2/ms)+' malas';document.getElementById('sTot').textContent=tot;document.getElementById('sTotM').textContent=Math.floor(tot/ms)+' malas';document.getElementById('sStr').textContent=streak;document.getElementById('sBest').textContent=best;
+const bars=document.getElementById('cbrs');bars.innerHTML='';const mx=Math.max(...wk.map(k=>App.S.history[k]||0),1);const dn=['Su','Mo','Tu','We','Th','Fr','Sa'];wk.forEach(k=>{const v=App.S.history[k]||0,h=Math.max(2,Math.round(v/mx*50));const c=document.createElement('div');c.className='cbc';c.innerHTML='<div class="cbb" style="height:'+h+'px"></div><div class="cbl">'+dn[new Date(k+'T12:00:00').getDay()]+'</div>';bars.appendChild(c);});
+const timeTod=(App.S.timerHistory[App.S.tk]||0)+(App.timerRunning?(App.timerSeconds-App.timerSavedSeconds):0);const timeWk=wk.reduce((s,k)=>s+(App.S.timerHistory[k]||0),0)+(App.timerRunning?(App.timerSeconds-App.timerSavedSeconds):0);const timeMo=Object.entries(App.S.timerHistory).filter(([k])=>k.startsWith(mp)).reduce((s,[,v])=>s+v,0)+(App.timerRunning?(App.timerSeconds-App.timerSavedSeconds):0);function fs(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return(h>0?h+'h ':'')+m+'m';}document.getElementById('tTod').textContent=fs(timeTod);document.getElementById('tWk').textContent=fs(timeWk);document.getElementById('tMo').textContent=fs(timeMo);
+renderMalaLog();}
+function renderMalaLog(){const log=App.S.malaLog||[];const listEl=document.getElementById('malaLogList');const countEl=document.getElementById('malaLogCount');const avgEl=document.getElementById('malaLogAvg');if(!listEl)return;if(countEl)countEl.textContent=log.length>0?'('+log.length+')':'';if(log.length===0){listEl.innerHTML='<div style="font-size:11px;color:var(--td);text-align:center;padding:6px 0">No malas yet today</div>';if(avgEl)avgEl.style.display='none';return;}if(avgEl&&log.length>0){const total=log.reduce((a,b)=>a+b,0);const avg=Math.round(total/log.length);const am=Math.floor(avg/60),as2=avg%60;avgEl.textContent='Avg per mala: '+(am>0?am+'m ':'')+as2+'s';avgEl.style.cssText='font-size:11px;color:var(--green);margin-bottom:6px;text-align:center;padding:5px 10px;background:rgba(46,204,113,0.08);border-radius:8px;border:1px solid rgba(46,204,113,0.18);display:block';}listEl.innerHTML='';log.forEach((sec,i)=>{const m=Math.floor(sec/60),s=sec%60;const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:rgba(46,204,113,0.07);border:1px solid rgba(46,204,113,0.15);border-radius:9px;';row.innerHTML='<span style="font-size:11px;color:var(--td)">Mala '+(i+1)+'</span><span style="font-family:\'EB Garamond\',serif;font-size:16px;color:var(--green)">'+(m>0?m+'m ':'')+s+'s</span>';listEl.appendChild(row);});}
+let pr=null;
+function cr2(tp){pr=tp;const t=document.getElementById('moT'),d=document.getElementById('moD');if(tp==='today'){t.textContent='Reset Today?';d.textContent="Clear today's "+App.gTod()+" jap.";}else if(tp==='28today'){t.textContent='Reset 28 Names Today?';d.textContent="Clear today's count.";}else if(tp==='range'){const f=document.getElementById('rfrom').value,to=document.getElementById('rto').value;if(!f||!to){toast('Select both dates');return;}t.textContent='Reset Range?';d.textContent=f+' to '+to;}else{t.textContent='Reset ALL Data?';d.textContent='Everything will be deleted permanently.';}document.getElementById('mo').classList.add('show');document.getElementById('moCf').onclick=doReset;}
+function doReset(){if(pr==='today'){App.S.history[App.S.tk]=0;App.lmc=0;App.S.malaLog=[];}else if(pr==='28today'){App.S.h28[App.S.tk]=0;App.lm28=0;u28();}else if(pr==='range'){const f=document.getElementById('rfrom').value,to=document.getElementById('rto').value;Object.keys(App.S.history).forEach(k=>{if(k>=f&&k<=to){App.S.history[k]=0;if(App.S.timerHistory[k])App.S.timerHistory[k]=0;}});}else{App.S.history={};App.S.h28={};App.S.dt=0;App.S.lt=0;App.S.stotrams={};App.S.brahma={};App.S.timerHistory={};App.S.malaLog=[];App.lmc=0;App.lm28=0;STLIST.forEach(x=>{App.S.stotrams[x.id]={};});App.resetTimer();}App.save();App.ua();renderCal();cm();toast('Reset done 🙏');}
+function cm(){document.getElementById('mo').classList.remove('show');}
+function exportAllData(){const backup={_version:2,_exported:new Date().toISOString(),history:App.S.history||{},h28:App.S.h28||{},timerHistory:App.S.timerHistory||{},stotrams:App.S.stotrams||{},brahma:App.S.brahma||{},customSt:App.S.customSt||[],sankalpas:App.S.sankalpas||[],occasions:App.S.occasions||{},ms:App.S.ms||108,dt:App.S.dt||0,lt:App.S.lt||0,cfg:App.S.cfg||{}};const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='radha-jap-backup-'+App.getTk()+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);toast('Backup downloaded! 🙏');}
+function importAllData(input){const file=input.files[0];if(!file)return;const st=document.getElementById('restoreStatus');if(st)st.textContent='Reading…';const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(data.history)App.S.history={...App.S.history,...data.history};if(data.h28)App.S.h28={...App.S.h28,...data.h28};if(data.timerHistory)App.S.timerHistory={...App.S.timerHistory,...data.timerHistory};if(data.stotrams)App.S.stotrams={...App.S.stotrams,...data.stotrams};if(data.brahma)App.S.brahma={...App.S.brahma,...data.brahma};if(data.customSt)App.S.customSt=data.customSt;if(data.sankalpas)App.S.sankalpas=data.sankalpas;if(data.occasions)App.S.occasions={...App.S.occasions,...data.occasions};if(data.ms)App.S.ms=data.ms;if(data.dt!==undefined)App.S.dt=data.dt;if(data.lt!==undefined)App.S.lt=data.lt;if(data.cfg)App.S.cfg={...App.S.cfg,...data.cfg};App.save();App.ua();renderSt();u28();renderBcal();renderCal();uStats();App.lmc=Math.floor((App.S.history[App.S.tk]||0)/(App.S.ms||108));App.lm28=Math.floor((App.S.h28[App.S.tk]||0)/(App.S.ms||108));if(st){st.textContent='✅ Restored! 🙏';st.style.color='var(--green)';}toast('Data restored! 🙏');input.value='';}catch(err){if(st){st.textContent='❌ Error: '+err.message;st.style.color='var(--red)';}}};reader.readAsText(file);}
+
+// ═══════════════════════════════════════════════
+// FIREBASE — single device sign-in
+// ═══════════════════════════════════════════════
+const firebaseConfig={apiKey:"AIzaSyCvvXEdsJjXpTbITE2HuyYFnPZfZIkxVWA",authDomain:"guru-kripahi-kevalam-108.firebaseapp.com",projectId:"guru-kripahi-kevalam-108",storageBucket:"guru-kripahi-kevalam-108.firebasestorage.app",messagingSenderId:"368485403238",appId:"1:368485403238:web:a3ab5c1427ad0c40fffba7"};
+let fbApp=null,fbAuth=null,fbDb=null,fbUser=null,fbListener=null;
+let fbDeviceId=(function(){let id=localStorage.getItem('rjap_device_id');if(!id){id='dev_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem('rjap_device_id',id);}return id;})();
+let _deviceSessionListener=null,_sessionKicked=false;
+
+function fbInit(){
+  if(fbApp)return true;
+  if(typeof firebase==='undefined'){if(!fbInit._r)fbInit._r=0;if(fbInit._r++<15)setTimeout(fbInit,400);return false;}
+  try{
+    fbApp=firebase.apps.length?firebase.apps[0]:firebase.initializeApp(firebaseConfig);
+    fbAuth=firebase.auth();fbDb=firebase.firestore();
+    fbDb.enablePersistence({synchronizeTabs:false}).catch(()=>{});
+    fbAuth.getRedirectResult().then(result=>{if(result&&result.credential&&result.credential.accessToken){gdAccessToken=result.credential.accessToken;localStorage.setItem('rjap_gd_token',gdAccessToken);toast('Signed in! ☁️ 🙏');}}).catch(e=>console.warn('redirect:',e.message));
+    fbAuth.onAuthStateChanged(user=>{
+      fbUser=user;
+      if(user){
+        document.getElementById('fbLoggedOut').style.display='none';
+        document.getElementById('fbLoggedIn').style.display='block';
+        document.getElementById('fbUserEmail').textContent=user.email||user.displayName||'Google User';
+        setSyncPill('syncing','Connecting…');
+        registerDeviceSession(user.uid);
+        fbAutoSync();
+      }else{
+        document.getElementById('fbLoggedOut').style.display='block';
+        document.getElementById('fbLoggedIn').style.display='none';
+      }
+    });
+    return true;
+  }catch(e){console.error('Firebase init:',e);return false;}
+}
+
+function registerDeviceSession(uid){
+  if(!fbDb||!uid)return;
+  const ref=fbDb.collection('users').doc(uid).collection('session').doc('active');
+  ref.set({deviceId:fbDeviceId,loginAt:firebase.firestore.FieldValue.serverTimestamp(),ua:navigator.userAgent.slice(0,80)}).catch(e=>console.warn('session set:',e.message));
+  if(_deviceSessionListener){_deviceSessionListener();_deviceSessionListener=null;}
+  _deviceSessionListener=ref.onSnapshot(snap=>{
+    if(!snap.exists)return;
+    const data=snap.data();
+    if(data&&data.deviceId&&data.deviceId!==fbDeviceId&&!_sessionKicked){
+      _sessionKicked=true;
+      if(fbAuth)fbAuth.signOut().catch(()=>{});
+      if(_deviceSessionListener){_deviceSessionListener();_deviceSessionListener=null;}
+      const banner=document.getElementById('kickedBanner');
+      if(banner){banner.style.display='flex';document.getElementById('fbLoggedOut').style.display='block';document.getElementById('fbLoggedIn').style.display='none';fbUser=null;}
+    }
+  },err=>console.warn('session listener:',err.message));
+}
+
+function dismissKicked(){_sessionKicked=false;const b=document.getElementById('kickedBanner');if(b)b.style.display='none';sv('vset',document.querySelectorAll('.nb')[6]);}
+
+function fbSignInGoogle(){
+  if(!fbInit()){toast('Firebase loading…');return;}
+  const provider=new firebase.auth.GoogleAuthProvider();
+  provider.addScope('https://www.googleapis.com/auth/drive.file');
+  fbAuth.signInWithPopup(provider).then(result=>{const cred=result.credential;if(cred&&cred.accessToken){gdAccessToken=cred.accessToken;localStorage.setItem('rjap_gd_token',gdAccessToken);}toast('Signed in! ☁️ 🙏');}).catch(e=>{if(e.code==='auth/popup-blocked'||e.code==='auth/popup-closed-by-user'||e.message.includes('sessionStorage')||e.message.includes('storage-partitioned')){toast('Opening browser…');setTimeout(()=>{try{fbAuth.signInWithRedirect(provider);}catch(err){const el=document.getElementById('fbErr');if(el){el.textContent='Open in Chrome or Safari (not Facebook/WhatsApp)';setTimeout(()=>el.textContent='',8000);}}},1000);}else{const el=document.getElementById('fbErr');if(el){el.textContent=e.message;setTimeout(()=>el.textContent='',5000);}}});}
+function fbSignOut(){if(fbAuth){if(fbListener){fbListener();fbListener=null;}if(_deviceSessionListener){_deviceSessionListener();_deviceSessionListener=null;}gdAccessToken=null;localStorage.removeItem('rjap_gd_token');fbAuth.signOut().then(()=>toast('Signed out 🙏'));}}
+
+async function fbPushDelta(){if(!fbUser)return;setSyncPill('syncing','Syncing…');const docRef=fbDb.collection('users').doc(fbUser.uid).collection('data').doc('main');const updates={};let hasDelta=false;[['history','syncBaseline'],['h28','syncBaseline28'],['timerHistory','syncBaselineTimer']].forEach(([field,baseKey])=>{const local=App.S[field]||{},base=App.S[baseKey]||{};for(const day in local){const delta=(local[day]||0)-(base[day]||0);if(delta>0){updates[field+'.'+day]=firebase.firestore.FieldValue.increment(delta);hasDelta=true;}}});updates.stotrams=App.S.stotrams||{};updates.brahma=App.S.brahma||{};updates.customSt=App.S.customSt||[];updates.sankalpas=App.S.sankalpas||[];updates.occasions=App.S.occasions||{};updates.ms=App.S.ms||108;updates.dt=App.S.dt||0;updates.lt=App.S.lt||0;updates.cfg=App.S.cfg||{};updates.lastSync=firebase.firestore.FieldValue.serverTimestamp();updates.deviceId=fbDeviceId;try{await docRef.update(updates);}catch(e){if(e.code==='not-found'||(e.message&&e.message.toLowerCase().includes('no document'))){await fbPushFull();return;}setSyncPill('error','Sync failed');return;}if(hasDelta){App.S.syncBaseline=JSON.parse(JSON.stringify(App.S.history||{}));App.S.syncBaseline28=JSON.parse(JSON.stringify(App.S.h28||{}));App.S.syncBaselineTimer=JSON.parse(JSON.stringify(App.S.timerHistory||{}));App.save();}setSyncPill('','☁️ Synced '+new Date().toLocaleTimeString());}
+async function fbPushFull(){if(!fbUser)return;const payload={history:App.S.history||{},h28:App.S.h28||{},stotrams:App.S.stotrams||{},brahma:App.S.brahma||{},customSt:App.S.customSt||[],timerHistory:App.S.timerHistory||{},sankalpas:App.S.sankalpas||[],occasions:App.S.occasions||{},ms:App.S.ms||108,dt:App.S.dt||0,lt:App.S.lt||0,cfg:App.S.cfg||{},lastSync:firebase.firestore.FieldValue.serverTimestamp(),deviceId:fbDeviceId};await fbDb.collection('users').doc(fbUser.uid).collection('data').doc('main').set(payload);App.S.syncBaseline=JSON.parse(JSON.stringify(App.S.history||{}));App.S.syncBaseline28=JSON.parse(JSON.stringify(App.S.h28||{}));App.S.syncBaselineTimer=JSON.parse(JSON.stringify(App.S.timerHistory||{}));App.save();setSyncPill('','☁️ Full sync done');}
+function fbApplyRemote(d){if(d.deviceId&&d.deviceId===fbDeviceId)return;[['history','syncBaseline'],['h28','syncBaseline28'],['timerHistory','syncBaselineTimer']].forEach(([field,baseKey])=>{if(!d[field])return;if(!App.S[field])App.S[field]={};const allDays=new Set([...Object.keys(App.S[field]),...Object.keys(d[field])]);allDays.forEach(day=>{App.S[field][day]=Math.max(App.S[field][day]||0,d[field][day]||0);});App.S[baseKey]=JSON.parse(JSON.stringify(App.S[field]));});if(d.stotrams){if(!App.S.stotrams)App.S.stotrams={};for(const stId in d.stotrams){if(!App.S.stotrams[stId])App.S.stotrams[stId]={};const rDays=d.stotrams[stId]||{};Object.keys(rDays).forEach(day=>{App.S.stotrams[stId][day]=Math.max(App.S.stotrams[stId][day]||0,rDays[day]||0);});}}if(d.brahma){if(!App.S.brahma)App.S.brahma={};for(const day in d.brahma){const rem=d.brahma[day],loc=App.S.brahma[day];if(!loc)App.S.brahma[day]=rem;else if(rem&&rem.status==='b')App.S.brahma[day]=rem;}}if(d.customSt)App.S.customSt=d.customSt;if(d.sankalpas)App.S.sankalpas=d.sankalpas;if(d.occasions)App.S.occasions={...App.S.occasions,...d.occasions};if(d.ms)App.S.ms=d.ms;if(d.dt!==undefined)App.S.dt=d.dt;if(d.lt!==undefined)App.S.lt=d.lt;if(d.cfg)App.S.cfg={...App.S.cfg,...d.cfg};App.save();App.lmc=Math.floor(App.gTod()/(App.S.ms||108));App.lm28=Math.floor((App.S.h28[App.S.tk]||0)/(App.S.ms||108));App.ua();renderSt();u28();renderBcal();renderCal();uStats();setSyncPill('','🔄 Synced from device');}
+async function fbMigrate(){if(App.S.migrationV2Done)return;try{const docRef=fbDb.collection('users').doc(fbUser.uid).collection('data').doc('main');const snap=await docRef.get();if(!snap.exists)await fbPushFull();else{fbApplyRemote({...snap.data(),deviceId:null});await fbPushFull();}App.S.migrationV2Done=true;App.save();setSyncPill('','✅ Sync ready');}catch(e){console.warn('Migration:',e.message);}}
+function fbAutoSync(){if(fbListener){fbListener();fbListener=null;}setTimeout(()=>fbMigrate(),1500);try{const docRef=fbDb.collection('users').doc(fbUser.uid).collection('data').doc('main');fbListener=docRef.onSnapshot(snap=>{if(!snap.exists)return;fbApplyRemote(snap.data());},err=>console.warn('Listener:',err.message));}catch(e){console.warn('Listener start:',e.message);}}
+let _fbDeb=null;
+function fbDebouncedPush(){if(!fbUser)return;clearTimeout(_fbDeb);_fbDeb=setTimeout(()=>fbPushDelta(),3000);}
+
+// ── Google Drive backup ──
+const GDRIVE_FILENAME='radha-naam-jap-backup.json';
+let gdAccessToken=localStorage.getItem('rjap_gd_token')||null;
+async function gdDriveSilentBackup(){if(!gdAccessToken)return;try{const data=JSON.stringify({version:2,exportedAt:new Date().toISOString(),history:App.S.history||{},h28:App.S.h28||{},timerHistory:App.S.timerHistory||{},stotrams:App.S.stotrams||{},brahma:App.S.brahma||{},customSt:App.S.customSt||[],sankalpas:App.S.sankalpas||[],occasions:App.S.occasions||{},ms:App.S.ms||108,dt:App.S.dt||0,lt:App.S.lt||0,cfg:App.S.cfg||{}},null,2);const lr=await fetch('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent("name='"+GDRIVE_FILENAME+"' and trashed=false")+'&spaces=drive&fields=files(id)',{headers:{'Authorization':'Bearer '+gdAccessToken}});if(!lr.ok){gdAccessToken=null;return;}const ld=await lr.json();const fileId=ld.files&&ld.files.length?ld.files[0].id:null;const boundary='rjap_'+Date.now();const metadata=JSON.stringify({name:GDRIVE_FILENAME,mimeType:'application/json'});const body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+metadata+'\r\n--'+boundary+'\r\nContent-Type: application/json\r\n\r\n'+data+'\r\n--'+boundary+'--';const method=fileId?'PATCH':'POST';const url=fileId?'https://www.googleapis.com/upload/drive/v3/files/'+fileId+'?uploadType=multipart':'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';const ur=await fetch(url,{method,headers:{'Authorization':'Bearer '+gdAccessToken,'Content-Type':'multipart/related; boundary='+boundary},body});if(ur.ok)setSyncPill('','☁️ Drive backed up');else if(ur.status===401){gdAccessToken=null;localStorage.removeItem('rjap_gd_token');}}catch(e){console.warn('Drive:',e.message);}}
+
+// ═══════════════════════════════════════════════
+// 28 NAMES
+// ═══════════════════════════════════════════════
+const NAMES28=[
+  {num:'১',name:'রাধা',meaning:'The Supreme Beloved'},
+  {num:'২',name:'রাসেশ্বরী',meaning:'Goddess of Rasa dance'},
+  {num:'৩',name:'রম্যা',meaning:'Most beautiful & delightful'},
+  {num:'৪',name:'শ্রীকৃষ্ণমন্ত্রাধিদেবতা',meaning:'Presiding deity of Krishna-mantra'},
+  {num:'৫',name:'সর্বাদ্যা',meaning:'The primordial, first of all'},
+  {num:'৬',name:'সর্ববন্দ্যা',meaning:'Worthy of worship by all'},
+  {num:'৭',name:'বৃন্দাবনবিহারিণী',meaning:'Who plays in Vrindavan'},
+  {num:'৮',name:'বৃন্দারাধ্যা',meaning:'Worshipped by Vrinda Devi'},
+  {num:'৯',name:'রমা',meaning:'The blissful one'},
+  {num:'১০',name:'অশেষগোপীমণ্ডলপূজিতা',meaning:'Worshipped by all gopis'},
+  {num:'১১',name:'সত্যা',meaning:'The eternal Truth'},
+  {num:'১২',name:'সত্যপরা',meaning:'Supreme among the truthful'},
+  {num:'১৩',name:'সত্যভামা',meaning:'True and lustrous one'},
+  {num:'১৪',name:'শ্রীকৃষ্ণবল্লভা',meaning:'The beloved of Shri Krishna'},
+  {num:'১৫',name:'বৃষভানুসুতা',meaning:'Daughter of King Vrishabhanu'},
+  {num:'১৬',name:'গোপী',meaning:'The divine cowherd girl'},
+  {num:'১৭',name:'মূলপ্রকৃতি',meaning:'The primordial nature'},
+  {num:'১৮',name:'ঈশ্বরী',meaning:'The supreme goddess'},
+  {num:'১৯',name:'গান্ধর্বা',meaning:'Goddess of divine music'},
+  {num:'২০',name:'রাধিকা',meaning:'She who worships Krishna'},
+  {num:'২১',name:'আরম্যা',meaning:'Noble, honoured one'},
+  {num:'২২',name:'রুক্মিণী',meaning:'Adorned with gold'},
+  {num:'২৩',name:'পরমেশ্বরী',meaning:'The supreme ruler'},
+  {num:'২৪',name:'পরাৎপরতরা',meaning:'Beyond the beyond'},
+  {num:'২৫',name:'পূর্ণা',meaning:'The complete, perfect one'},
+  {num:'২৬',name:'পূর্ণচন্দ্রনিভাননা',meaning:'Face like the full moon'},
+  {num:'২৭',name:'ভুক্তিমুক্তিপ্রদা',meaning:'Giver of enjoyment & liberation'},
+  {num:'২৮',name:'ভবব্যাধিবিনাশিনী',meaning:'Destroyer of worldly suffering'}
+];
+function get28Pos(){return(App.S.h28[App.S.tk]||0)%28;}
+function render28Dots(pos){const pg=document.getElementById('n28prog');if(!pg)return;pg.innerHTML='';for(let i=0;i<28;i++){const d=document.createElement('div');d.className='n28dot'+(i<pos?' done':(i===pos?' current':''));pg.appendChild(d);}}
+function u28(){const tod=App.S.h28[App.S.tk]||0,tot=Object.values(App.S.h28).reduce((a,b)=>a+b,0),cycles28=Math.floor(tot/28),malas=Math.floor(tot/(App.S.ms||108));document.getElementById('n28t').textContent=tod;document.getElementById('n28tot').textContent=cycles28;document.getElementById('n28w').textContent=malas;const pos=get28Pos(),entry=NAMES28[pos];const nameEl=document.getElementById('n28name');if(nameEl){nameEl.style.animation='none';nameEl.offsetHeight;nameEl.style.animation='nameIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards';nameEl.textContent=entry.name;}document.getElementById('n28num').textContent=entry.num;document.getElementById('n28meaning').textContent=entry.meaning;const cc=Math.floor(tod/28);const cycEl=document.getElementById('n28cycle');if(cycEl)cycEl.textContent=tod===0?'Tap to begin · Cycle 1':pos===0&&tod>0?'✨ Cycle '+(cc+1)+' begins!':'Cycle '+(cc+1)+' · '+pos+'/28 done';render28Dots(pos);renderSankalpas();}
+function spawnName28(e,nameText){const zone=document.getElementById('tz28');const r=zone.getBoundingClientRect();let x,y;if(e.touches&&e.touches[0]){x=e.touches[0].clientX-r.left;y=e.touches[0].clientY-r.top;}else{x=e.clientX-r.left;y=e.clientY-r.top;}const el=document.createElement('div');el.style.cssText='position:absolute;font-family:serif;pointer-events:none;z-index:10;font-size:'+(22+Math.random()*16).toFixed(0)+'px;color:rgba(255,215,0,0.65);left:'+(x-40)+'px;top:'+(y-10)+'px;animation:fu28 1.8s ease-out forwards;white-space:nowrap';el.textContent=nameText;zone.appendChild(el);setTimeout(()=>el.remove(),1800);}
+function cycleDone28(){const zone=document.getElementById('tz28');zone.style.background='radial-gradient(ellipse at center,rgba(255,215,0,0.25) 0%,rgba(6,13,31,0.6) 100%)';setTimeout(()=>zone.style.background='',600);const active=getActiveSankalp();let fulfilled=false;if(active&&active.startCycles!==null){const prog=Math.max(0,getTotalCycles28()-active.startCycles);if(prog>=active.target){active.done=true;active.doneDate=App.S.tk;fulfilled=true;activateNextSankalp();}}if(fulfilled){App.save();fbDebouncedPush();renderSankalpas();toast('🌟 Sankalp fulfilled! Jai Radhe! 🙏');}else toast('🌸 Cycle complete! राधे राधे 🙏');if(navigator.vibrate)navigator.vibrate([80,40,80,40,200]);}
+
+// ── Sankalp ──
+function getTotalCycles28(){return Math.floor(Object.values(App.S.h28).reduce((a,b)=>a+b,0)/28);}
+function getActiveSankalp(){return(App.S.sankalpas||[]).find(s=>!s.done)||null;}
+function activateNextSankalp(){const next=(App.S.sankalpas||[]).find(s=>!s.done);if(next&&next.startCycles===null)next.startCycles=getTotalCycles28();}
+function getSankalpProgress(sk){const active=getActiveSankalp();if(!active||active.id!==sk.id)return -1;if(sk.startCycles===null)return 0;return Math.min(Math.max(0,getTotalCycles28()-sk.startCycles),sk.target);}
+function addSankalp(){const wish=(document.getElementById('skWish').value||'').trim();const target=parseInt(document.getElementById('skTarget').value)||0;if(!wish){toast('Please write your wish 🙏');return;}if(target<1){toast('Enter target cycles');return;}const hasActive=(App.S.sankalpas||[]).some(s=>!s.done);const sk={id:'sk_'+Date.now(),wish,target,startDate:App.S.tk,startCycles:hasActive?null:getTotalCycles28(),done:false,doneDate:null};App.S.sankalpas.push(sk);document.getElementById('skWish').value='';document.getElementById('skTarget').value='';App.save();fbDebouncedPush();renderSankalpas();toast(hasActive?'Queued 🌸':'Sankalp added! 🌸 Jai Radhe!');}
+function renderSankalpas(){const el=document.getElementById('skList');if(!el)return;const all=App.S.sankalpas||[];if(!all.length){el.innerHTML='<div class="sk-empty">No sankalpa yet 🌸</div>';return;}const nonDone=all.filter(s=>!s.done),done=all.filter(s=>s.done);let html='';nonDone.forEach((sk,idx)=>{const prog=getSankalpProgress(sk),isActive=(prog>=0);if(isActive){const pct=Math.round(prog/sk.target*100);html+='<div class="sk-item" style="border-color:rgba(232,51,109,0.55);background:rgba(232,51,109,0.07)"><div style="font-size:9px;color:var(--rose);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px">▶ CURRENT WISH</div><div class="sk-wish">'+escHtml(sk.wish)+'</div><div class="sk-meta">Target: <strong style="color:var(--tl)">'+sk.target+'</strong> cycles</div><div class="sk-bar-wrap"><div class="sk-bar'+(pct>=100?' full':'') + '" style="width:'+Math.min(pct,100)+'%"></div></div><div class="sk-prog-text">'+prog+' / '+sk.target+' ('+pct+'%)</div><div class="sk-btns"><button class="sk-btn grn" onclick="fulfillSankalp(\''+sk.id+'\')">✓ Fulfilled</button><button class="sk-btn grey" onclick="deleteSankalp(\''+sk.id+'\')">✕</button></div></div>';}else{html+='<div class="sk-item" style="opacity:0.85"><div style="font-size:9px;color:var(--td);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px">⏳ QUEUED #'+(idx+1)+'</div><div class="sk-wish" style="color:var(--tl)">'+escHtml(sk.wish)+'</div><div class="sk-meta">Target: <strong style="color:var(--tl)">'+sk.target+'</strong> cycles</div><div class="sk-btns"><button class="sk-btn grey" onclick="deleteSankalp(\''+sk.id+'\')">✕</button></div></div>';}});if(done.length){html+='<div class="sk-divider">✨ Fulfilled ✨</div>';done.forEach(sk=>{html+='<div class="sk-item done"><div class="sk-done-badge">✓ Fulfilled · '+sk.doneDate+'</div><div class="sk-wish" style="color:var(--td)">'+escHtml(sk.wish)+'</div><div class="sk-btns"><button class="sk-btn grey" onclick="deleteSankalp(\''+sk.id+'\')">✕</button></div></div>';});}el.innerHTML=html;}
+function fulfillSankalp(id){const sk=(App.S.sankalpas||[]).find(s=>s.id===id);if(!sk)return;sk.done=true;sk.doneDate=App.S.tk;activateNextSankalp();App.save();fbDebouncedPush();renderSankalpas();toast('🌸 Fulfilled! Jai Radhe!');}
+function deleteSankalp(id){const wasActive=getActiveSankalp()&&getActiveSankalp().id===id;App.S.sankalpas=(App.S.sankalpas||[]).filter(s=>s.id!==id);if(wasActive)activateNextSankalp();App.save();fbDebouncedPush();renderSankalpas();toast('Removed.');}
+function toggleSankalp(){const c=document.getElementById('skCollapse'),v=document.getElementById('skChevron');const open=c.classList.toggle('open');if(v)v.style.transform=open?'rotate(180deg)':'rotate(0deg)';if(open)renderSankalpas();}
+
+// ═══════════════════════════════════════════════
+// STOTRAM
+// ═══════════════════════════════════════════════
+const STLIST=[
+  {id:'rks',name:'শ্রীরাধাকৃপাকটাক্ষস্তবরাজঃ',sub:'রাধার কৃপাদৃষ্টির প্রার্থনা'},
+  {id:'gms',name:'গজেন্দ্র মোক্ষ স্তোত্রম্',sub:'মুক্তির প্রার্থনা'},
+  {id:'nkc',name:'নারায়ণ কবচম',sub:'নারায়ণের দিব্য কবচ'},
+  {id:'vs2',name:'শ্রী বিষ্ণু শতনাম স্তোত্রম্',sub:'বিষ্ণুর শতনাম'},
+  {id:'bss',name:'বেদসার শিব স্তব',sub:'মহাদেবের স্তুতি'},
+  {id:'ans',name:'অর্ধনারীশ্বরস্তোত্রম্',sub:'শিব-পার্বতীর স্তোত্র'},
+  {id:'rds',name:'রুদ্রাষ্টকম্',sub:'রুদ্রের অষ্টক স্তোত্র'},
+  {id:'sps',name:'শ্রী শিব পঞ্চাক্ষর স্তোত্রম্',sub:'পঞ্চাক্ষর মন্ত্রের স্তোত্র'}
+];
+const LYRICS={};
+function renderSt(){const list=document.getElementById('stList');list.innerHTML='';const all=[...STLIST,...(App.S.customSt||[]).map(x=>({...x,custom:true}))];all.forEach(st=>{const tc=(App.S.stotrams[st.id]||{})[App.S.tk]||0;const tot=Object.values(App.S.stotrams[st.id]||{}).reduce((a,b)=>a+b,0);const hasLyrics=!!LYRICS[st.id]||(st.custom&&st.lyrics&&st.lyrics.trim().length>0);const c=document.createElement('div');c.className='stc';c.innerHTML='<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:3px"><span class="stn">'+escHtml(st.name)+'</span>'+(st.custom?'<button class="dsb" onclick="delSt(\''+st.id+'\')">&#10005;</button>':'')+'</div>'+(st.sub?'<div class="sts">'+escHtml(st.sub)+'</div>':'')+'<div class="scr"><div><div class="scnt" id="sc'+st.id+'">'+tc+'</div><div class="std2">Today &middot; Total: <strong style="color:var(--a2)">'+tot+'</strong></div></div><div class="sbtns"><button class="sbtn m" onclick="adjSt(\''+st.id+'\',-1)">&#8722;</button><button class="sbtn p" onclick="adjSt(\''+st.id+'\',1)">+</button>'+(hasLyrics?'<button class="sbtn l" onclick="showLyrics(\''+st.id+'\')">&#128214;</button>':'')+'</div></div>';list.appendChild(c);});}
+function adjSt(id,d){if(!App.S.stotrams[id])App.S.stotrams[id]={};if(!App.S.stotrams[id][App.S.tk])App.S.stotrams[id][App.S.tk]=0;App.S.stotrams[id][App.S.tk]=Math.max(0,App.S.stotrams[id][App.S.tk]+d);App.save();fbDebouncedPush();const e=document.getElementById('sc'+id);if(e)e.textContent=App.S.stotrams[id][App.S.tk];App.vib([20]);}
+function addSt(){const name=document.getElementById('snIn').value.trim();if(!name){toast('Enter a name');return;}const sub=document.getElementById('ssIn').value.trim();const lyrics=(document.getElementById('slIn').value||'').trim();const id='c_'+Date.now();if(!App.S.customSt)App.S.customSt=[];App.S.customSt.push({id,name,sub,lyrics});if(!App.S.stotrams[id])App.S.stotrams[id]={};App.save();fbDebouncedPush();document.getElementById('snIn').value='';document.getElementById('ssIn').value='';document.getElementById('slIn').value='';renderSt();toggleAsfForm(false);toast('Stotram added! 🙏');}
+function delSt(id){App.S.customSt=(App.S.customSt||[]).filter(x=>x.id!==id);delete App.S.stotrams[id];App.save();fbDebouncedPush();renderSt();toast('Removed');}
+function showLyrics(id){const ly=LYRICS[id]||((App.S.customSt||[]).find(x=>x.id===id)||{}).lyrics||'';if(!ly){toast('Lyrics not found');return;}const nm=[...STLIST,...(App.S.customSt||[])].find(x=>x.id===id);document.getElementById('lmTitle').textContent=nm?nm.name:id;document.getElementById('lyrBody').textContent=ly;document.getElementById('lmo').classList.add('show');document.getElementById('lmb').scrollTop=0;}
+function closeLyrics(){document.getElementById('lmo').classList.remove('show');}
+function toggleAsfForm(forceOpen){const body=document.getElementById('asfBody');const chevron=document.getElementById('asfChevron');if(!body)return;const isOpen=forceOpen!==undefined?forceOpen:!body.classList.contains('open');body.classList.toggle('open',isOpen);if(chevron)chevron.style.transform=isOpen?'rotate(180deg)':'';}
+
+// ═══════════════════════════════════════════════
+// BRAHMACHARYA
+// ═══════════════════════════════════════════════
+const BRAHMA_START='2026-03-16';
+let bcd=new Date();
+const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function renderBcal(){const yr=bcd.getFullYear(),mo=bcd.getMonth();document.getElementById('bmy').textContent=MN[mo]+' '+yr;const g=document.getElementById('bcal');g.innerHTML='';const fd=new Date(yr,mo,1).getDay(),dim=new Date(yr,mo+1,0).getDate(),ts=App.getTk();for(let i=0;i<fd;i++){const e=document.createElement('div');e.className='bcl e';g.appendChild(e);}for(let d=1;d<=dim;d++){const key=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');const en=App.S.brahma[key],isBroken=en&&en.status==='b';const isActive=key>=BRAHMA_START&&key<=ts;const c=document.createElement('div');c.className='bcl '+(isActive?(isBroken?'b':'m'):'e');if(key===ts)c.classList.add('tc');c.innerHTML='<span style="font-size:11px">'+d+'</span>';if(isBroken&&en.count>1)c.innerHTML+='<span style="font-size:8px;display:block">'+en.count+'x</span>';if(isActive){c.style.cursor='pointer';(function(k,brk,cnt){c.onclick=function(){openBcDay(k,brk,cnt);};})(key,isBroken,en&&en.count||1);}g.appendChild(c);}uBStats();}
+function cbm(d){bcd.setMonth(bcd.getMonth()+d);renderBcal();}
+function openBcDay(key,isBroken,cnt){const parts=key.split('-'),label=MN[parseInt(parts[1])-1]+' '+parseInt(parts[2])+', '+parts[0];document.getElementById('bcmoT').textContent=(isBroken?'❌ Broken — ':'✅ Maintained — ')+label;document.getElementById('bcmoD').textContent=isBroken?'Tap to restore.':'Tap to mark as broken.';document.getElementById('bcmoCnt').value=cnt||1;document.getElementById('bcmoBrkRow').style.display=isBroken?'none':'flex';document.getElementById('bcmoRst').style.display=isBroken?'':'none';document.getElementById('bcmoBrk').style.display=isBroken?'none':'';document.getElementById('bcmoBrk').onclick=function(){App.S.brahma[key]={status:'b',count:parseInt(document.getElementById('bcmoCnt').value)||1};App.save();fbDebouncedPush();renderBcal();document.getElementById('bcmo').classList.remove('show');toast('Marked as broken 🙏');};document.getElementById('bcmoRst').onclick=function(){delete App.S.brahma[key];App.save();fbDebouncedPush();renderBcal();document.getElementById('bcmo').classList.remove('show');toast('✅ Restored!');};document.getElementById('bcmo').classList.add('show');}
+function uBStats(){const startD=new Date(BRAHMA_START);startD.setHours(0,0,0,0);const todayD=new Date();todayD.setHours(0,0,0,0);const totalDays=Math.max(0,Math.round((todayD-startD)/86400000)+1);const brok=Object.values(App.S.brahma).filter(e=>e.status==='b').length;const maint=totalDays-brok;const tmc=Object.values(App.S.brahma).filter(e=>e.status==='b').reduce((s,e)=>s+e.count,0);const pct=totalDays>0?Math.round(maint/totalDays*100):0;let cs=0;const d=new Date();d.setHours(0,0,0,0);while(cs<999){const k=d.toISOString().split('T')[0];if(k<BRAHMA_START)break;const en=App.S.brahma[k];if(!en||en.status!=='b'){cs++;d.setDate(d.getDate()-1);}else break;}let bs=0,run=0;const allDays=[],cur=new Date(BRAHMA_START);cur.setHours(0,0,0,0);while(cur<=todayD){allDays.push(cur.toISOString().split('T')[0]);cur.setDate(cur.getDate()+1);}allDays.forEach(k=>{const en=App.S.brahma[k];if(!en||en.status!=='b'){run++;if(run>bs)bs=run;}else run=0;});document.getElementById('bcs').textContent=cs;document.getElementById('bbs').textContent=bs;document.getElementById('bbc').textContent=brok;document.getElementById('bmd').textContent=maint;document.getElementById('bbd').textContent=brok;document.getElementById('btm').textContent=tmc;document.getElementById('bmp').textContent=pct+'%';}
+
+// ═══════════════════════════════════════════════
+// CALENDAR
+// ═══════════════════════════════════════════════
+let cald=new Date();
+function renderCal(){const yr=cald.getFullYear(),mo=cald.getMonth();document.getElementById('cmy').textContent=MN[mo]+' '+yr;const g=document.getElementById('cg');while(g.children.length>7)g.removeChild(g.lastChild);const fd=new Date(yr,mo,1).getDay(),dim=new Date(yr,mo+1,0).getDate(),ts=App.getTk();for(let i=0;i<fd;i++)g.appendChild(document.createElement('div'));for(let d=1;d<=dim;d++){const key=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');const cnt=App.S.history[key]||0,timeSec=App.S.timerHistory[key]||0;const occ=App.S.occasions&&App.S.occasions[key];const c=document.createElement('div');c.className='cc';if(key===ts)c.classList.add('today');if(cnt>0){c.classList.add('hd');if(App.S.dt>0&&cnt>=App.S.dt)c.classList.add('tm');}if(occ)c.classList.add('occ');let inner='<span>'+d+'</span>';if(cnt>0)inner+='<span class="ccc">'+cnt+'</span>';if(occ)inner+='<span class="cco">'+escHtml(occ)+'</span>';c.innerHTML=inner;c.onclick=(()=>{const k=key,n=cnt,t=timeSec;return()=>showDay(k,n,t);})();g.appendChild(c);}}
+function chm(d){cald.setMonth(cald.getMonth()+d);renderCal();}
+let _sheetKey=null;
+function showDay(key,cnt,timeSec){_sheetKey=key;const ms=App.S.ms||108;const pts=key.split('-'),yr=pts[0],mo=pts[1],d=pts[2];document.getElementById('cdmoTitle').textContent=MN[parseInt(mo)-1]+' '+parseInt(d)+', '+yr;document.getElementById('cdmoJap').textContent=cnt;document.getElementById('cdmoMala').textContent=Math.floor(cnt/ms);document.getElementById('cdmoTime').textContent=timeSec>0?App.fmtTime(timeSec):'—';_renderSheetOcc(key);document.getElementById('cdmoOccIn').value='';document.getElementById('cdmo').classList.add('show');}
+function _renderSheetOcc(key){const occ=App.S.occasions&&App.S.occasions[key];const curEl=document.getElementById('cdmoOccCur');if(occ){curEl.innerHTML='<span style="color:var(--gold)">🪔 '+escHtml(occ)+'</span><button class="cdmo-occ-del" onclick="_delSheetOcc(\''+key+'\')">✕</button>';}else{curEl.innerHTML='<span style="color:var(--td);font-style:italic">None added</span>';}}
+function _delSheetOcc(key){if(App.S.occasions)delete App.S.occasions[key];App.save();fbDebouncedPush();renderCal();_renderSheetOcc(key);toast('Occasion removed.');}
+function addOccasionFromSheet(){const key=_sheetKey;if(!key)return;const name=(document.getElementById('cdmoOccIn').value||'').trim();if(!name){toast('Enter occasion name');return;}if(!App.S.occasions)App.S.occasions={};App.S.occasions[key]=name;document.getElementById('cdmoOccIn').value='';App.save();fbDebouncedPush();renderCal();_renderSheetOcc(key);toast('Occasion added! 🪔 '+name);}
+function closeDaySheet(){document.getElementById('cdmo').classList.remove('show');_sheetKey=null;}
+
+// ═══════════════════════════════════════════════
+// SUN TIMES
+// ═══════════════════════════════════════════════
+function calcSunTimes(lat,lng,date){const rad=Math.PI/180,JD=(date.getTime()/86400000)+2440587.5,n=JD-2451545.0;const L=(280.46+0.9856474*n)%360,g=(357.528+0.9856003*n)%360;const lambda=L+1.915*Math.sin(g*rad)+0.02*Math.sin(2*g*rad);const epsilon=23.439-0.0000004*n,sinDec=Math.sin(epsilon*rad)*Math.sin(lambda*rad);const dec=Math.asin(sinDec),cosHA=(Math.cos(90.833*rad)-Math.sin(lat*rad)*sinDec)/(Math.cos(lat*rad)*Math.cos(dec));if(cosHA>1||cosHA<-1)return null;const HA=Math.acos(cosHA)/rad,GMST=6.697375+0.0657098242*n,LMST=(GMST*15+lng)%360;const transit=(360-LMST+lambda)/15,sunrise=transit-HA/15,sunset=transit+HA/15;function toLocal(utcH){const off=date.getTimezoneOffset()/(-60);let h=(utcH+24+off)%24;const hh=Math.floor(h),mm=Math.round((h-hh)*60),fH=mm===60?hh+1:hh,fM=mm===60?0:mm,ap=fH>=12?'PM':'AM',h12=((fH%12)||12);return String(h12).padStart(2,'0')+':'+String(fM).padStart(2,'0')+' '+ap;}function toLocalRaw(utcH){const off=date.getTimezoneOffset()/(-60);return(utcH+24+off)%24;}return{sunriseH:toLocalRaw(sunrise),sunsetH:toLocalRaw(sunset),sunrise:toLocal(sunrise),sunset:toLocal(sunset)};}
+function fmtHour(h){let hh=Math.floor(h),mm=Math.round((h-hh)*60);if(mm>=60){hh++;mm=0;}if(hh>=24)hh-=24;const ap=hh>=12?'PM':'AM',h12=((hh%12)||12);return String(h12).padStart(2,'0')+':'+String(mm).padStart(2,'0')+' '+ap;}
+function updateSunInfo(lat,lng){const now=new Date(),times=calcSunTimes(lat,lng,now);if(!times)return;const bmStart=times.sunriseH-96/60,bmEnd=times.sunriseH-46/60;document.getElementById('bm-start').textContent=fmtHour(bmStart<0?bmStart+24:bmStart);document.getElementById('bm-end').textContent=fmtHour(bmEnd<0?bmEnd+24:bmEnd);document.getElementById('rh-sunrise').textContent=times.sunrise;const skStart=times.sunsetH-24/60,skEnd=times.sunsetH+24/60;document.getElementById('sk-start').textContent=fmtHour(skStart);document.getElementById('sk-end').textContent=fmtHour(skEnd>24?skEnd-24:skEnd);document.getElementById('rh-sunset').textContent=times.sunset;}
+function initSunTimes(){if(navigator.geolocation){navigator.geolocation.getCurrentPosition(pos=>{updateSunInfo(pos.coords.latitude,pos.coords.longitude);setInterval(()=>updateSunInfo(pos.coords.latitude,pos.coords.longitude),600000);},()=>updateSunInfo(23.8103,90.4125),{timeout:8000,maximumAge:3600000});}else updateSunInfo(23.8103,90.4125);}
+
+// ═══════════════════════════════════════════════
+// DAILY REMINDERS
+// ═══════════════════════════════════════════════
+const REM_KEY='radhaJapReminders_v2';
+const remTimers={brahma:null,sandhya:null,manual:null};
+function showPwaGuide(){document.getElementById('pwaMo').classList.add('show');}
+function closePwaGuide(){document.getElementById('pwaMo').classList.remove('show');}
+function getRemCfg(){try{return JSON.parse(localStorage.getItem(REM_KEY))||{};}catch{return{};}}
+function saveRemCfg(cfg){localStorage.setItem(REM_KEY,JSON.stringify(cfg));}
+async function fetchSunTimes(lat,lon){const url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&daily=sunrise,sunset&timezone=auto&forecast_days=2';const r=await fetch(url);const d=await r.json();return{sunrise:[new Date(d.daily.sunrise[0]),new Date(d.daily.sunrise[1])],sunset:[new Date(d.daily.sunset[0]),new Date(d.daily.sunset[1])]};}
+function brahmaNotifyTime(sunrise){return new Date(sunrise.getTime()-(101*60*1000));}
+function sandhyaNotifyTime(sunset){return new Date(sunset.getTime()-(5*60*1000));}
+function fmt12(date){let h=date.getHours(),m=date.getMinutes();const ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+String(m).padStart(2,'0')+' '+ap;}
+async function loadSunTimes(forceRefresh){const cfg=getRemCfg();const now=Date.now();const cached=cfg.sunCache;const locEl=document.getElementById('remLocStatus');if(!forceRefresh&&cached&&(now-cached.ts)<6*3600*1000){applySunCache(cached);return cached;}if(locEl)locEl.textContent='📍 Detecting location…';return new Promise(resolve=>{if(!navigator.geolocation){if(locEl)locEl.textContent='⚠️ GPS not available';resolve(null);return;}navigator.geolocation.getCurrentPosition(async pos=>{try{const{latitude:lat,longitude:lon}=pos.coords;const sun=await fetchSunTimes(lat,lon);const cache={ts:now,lat,lon,sunrise0:sun.sunrise[0].toISOString(),sunrise1:sun.sunrise[1].toISOString(),sunset0:sun.sunset[0].toISOString(),sunset1:sun.sunset[1].toISOString()};cfg.sunCache=cache;saveRemCfg(cfg);applySunCache(cache);if(locEl)locEl.textContent='📍 Location detected';resolve(cache);}catch(e){if(locEl)locEl.textContent='⚠️ Could not get sun times';resolve(null);}},()=>{if(locEl)locEl.textContent='⚠️ Location permission denied';resolve(null);},{timeout:10000});});}
+function applySunCache(cache){if(!cache)return;const sr0=new Date(cache.sunrise0);const ss0=new Date(cache.sunset0);const bTime=brahmaNotifyTime(sr0);const sTime=sandhyaNotifyTime(ss0);const btEl=document.getElementById('remTimeBrahma');const stEl=document.getElementById('remTimeSandhya');if(btEl)btEl.textContent='Notify at '+fmt12(bTime)+' · Sunrise '+fmt12(sr0);if(stEl)stEl.textContent='Notify at '+fmt12(sTime)+' · Sunset '+fmt12(ss0);}
+function scheduleType(type,cfg){if(remTimers[type]){clearTimeout(remTimers[type]);remTimers[type]=null;}if(!cfg[type]||!cfg[type].enabled)return;function arm(){const now=new Date();let fireAt=null;if(type==='manual'){const[h,m]=(cfg.manual.time||'06:00').split(':').map(Number);fireAt=new Date();fireAt.setHours(h,m,0,0);if(fireAt<=now)fireAt.setDate(fireAt.getDate()+1);}else{const cache=cfg.sunCache;if(!cache)return;const sr0=new Date(cache.sunrise0),sr1=new Date(cache.sunrise1);const ss0=new Date(cache.sunset0),ss1=new Date(cache.sunset1);if(type==='brahma'){fireAt=brahmaNotifyTime(sr0);if(fireAt<=now)fireAt=brahmaNotifyTime(sr1);}else{fireAt=sandhyaNotifyTime(ss0);if(fireAt<=now)fireAt=sandhyaNotifyTime(ss1);}}if(!fireAt)return;const delay=fireAt-Date.now();remTimers[type]=setTimeout(()=>{fireReminder(type);setTimeout(()=>{const c=getRemCfg();if(c[type]?.enabled){if(type!=='manual')loadSunTimes(true).then(()=>scheduleType(type,getRemCfg()));else scheduleType(type,c);}},5000);},Math.max(delay,1000));}arm();}
+function fireReminder(type){if(Notification.permission!=='granted')return;const titles={brahma:'ब्रह्म मुहूर्त 🌄',sandhya:'संध्याकाल 🌅',manual:'राधे राधे 🙏'};const bodies={brahma:'Brahma Muhurta — sacred jap time. राधे राधे!',sandhya:'Sandhyakal — evening jap time. राधे राधे!',manual:'Time for Naam Jap! राधे राधे 🙏'};if('serviceWorker' in navigator&&navigator.serviceWorker.controller){navigator.serviceWorker.controller.postMessage({type:'SHOW_NOTIFICATION',title:titles[type],body:bodies[type],tag:'radha-jap-'+type});}else{const n=new Notification(titles[type],{body:bodies[type],tag:'radha-jap-'+type,renotify:true});n.onclick=()=>{window.focus();n.close();};}}
+async function toggleReminderType(type){if(!('Notification' in window)){showPwaGuide();return;}const cfg=getRemCfg();const isOn=cfg[type]?.enabled;if(isOn){cfg[type]={...(cfg[type]||{}),enabled:false};saveRemCfg(cfg);updateReminderUI(type,false,cfg);if(remTimers[type]){clearTimeout(remTimers[type]);remTimers[type]=null;}const label=type==='brahma'?'Brahma Muhurta':type==='sandhya'?'Sandhyakal':'Custom';toast(label+' reminder off');}else{const perm=Notification.permission==='granted'?'granted':await Notification.requestPermission();if(perm!=='granted'){showPwaGuide();return;}if(type!=='manual'){const cache=await loadSunTimes(false);if(!cache){toast('Could not get location');return;}}if(!cfg[type])cfg[type]={};cfg[type].enabled=true;if(type==='manual'&&!cfg.manual?.time)cfg.manual.time='06:00';saveRemCfg(cfg);updateReminderUI(type,true,cfg);scheduleType(type,cfg);const label=type==='brahma'?'🌄 Brahma':type==='sandhya'?'🌅 Sandhya':'🕐 Custom';toast(label+' reminder on! 🙏');}}
+function saveManualReminderTime(){const time=document.getElementById('reminderTimeIn').value;if(!time){toast('Select a time');return;}const cfg=getRemCfg();if(!cfg.manual)cfg.manual={};cfg.manual.time=time;cfg.manual.enabled=true;saveRemCfg(cfg);updateReminderUI('manual',true,cfg);scheduleType('manual',cfg);toast('Custom reminder saved 🙏');}
+function updateReminderUI(type,on,cfg){const tgMap={brahma:'tgBrahma',sandhya:'tgSandhya',manual:'tgManual'};const tg=document.getElementById(tgMap[type]);if(tg)on?tg.classList.add('on'):tg.classList.remove('on');if(type==='manual'){const row=document.getElementById('reminderTimeRow');const timeEl=document.getElementById('remTimeManual');if(row)row.style.display=on?'flex':'none';if(timeEl){const t=cfg.manual?.time;if(on&&t){const[h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM',h12=h%12||12;timeEl.textContent=h12+':'+String(m).padStart(2,'0')+' '+ap+' daily';}else{timeEl.textContent='Not set';}}}}
+async function initReminderUI(){const cfg=getRemCfg();['brahma','sandhya','manual'].forEach(type=>updateReminderUI(type,!!(cfg[type]?.enabled),cfg));if(cfg.manual?.time)document.getElementById('reminderTimeIn').value=cfg.manual.time;if(cfg.sunCache)applySunCache(cfg.sunCache);if(cfg.brahma?.enabled||cfg.sandhya?.enabled){await loadSunTimes(false);}else{const locEl=document.getElementById('remLocStatus');if(locEl)locEl.textContent='Enable Brahma/Sandhya to auto-detect times';}}
+(function restoreAllReminders(){if(Notification.permission!=='granted')return;const cfg=getRemCfg();['brahma','sandhya','manual'].forEach(type=>{if(cfg[type]?.enabled)scheduleType(type,cfg);});})();
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+window.addEventListener('load',async()=>{
+  await App.load();
+  App.lmc=Math.floor(App.gTod()/(App.S.ms||108));
+  App.lm28=Math.floor((App.S.h28[App.S.tk]||0)/(App.S.ms||108));
+  App.timerSeconds=0;App.timerSavedSeconds=0;App.malaSessionStart=0;
+  document.getElementById('timerDisplay').textContent='00:00:00';
+  if(App.S.cfg.vib)document.getElementById('tgVib').classList.add('on');
+  if(App.S.cfg.sound)document.getElementById('tgSnd').classList.add('on');
+  const dti=document.getElementById('dtIn');const lti=document.getElementById('ltIn');
+  if(dti)dti.addEventListener('input',function(){document.getElementById('dtMala').textContent=Math.ceil((parseInt(this.value)||0)/(App.S.ms||108));});
+  if(lti)lti.addEventListener('input',function(){document.getElementById('ltMala').textContent=Math.ceil((parseInt(this.value)||0)/(App.S.ms||108)).toLocaleString();});
+  App.ua();fbInit();initSunTimes();buildPwaManifest();
+  const savedToken=localStorage.getItem('rjap_gd_token');if(savedToken)gdAccessToken=savedToken;
+  setTimeout(()=>{const l=document.getElementById('ls');if(l){l.classList.add('hide');setTimeout(()=>l.remove(),800);}},2200);
+});
+
+</script>
+</body>
+</html>
