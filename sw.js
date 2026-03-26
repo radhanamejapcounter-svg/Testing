@@ -2,7 +2,7 @@
 // Radha Naam Jap — Service Worker
 // Update CACHE version when index.html changes
 // ═══════════════════════════════════════════════
-const CACHE = 'radha-jap-v9';  // bumped: fullscreen + single-device
+const CACHE = 'radha-jap-v6';  // bumped: one-device-at-a-time + new splash
 
 const PRECACHE = [
   './index.html',
@@ -14,6 +14,7 @@ const PRECACHE = [
   'https://apis.google.com/js/api.js'
 ];
 
+// Firebase & Google auth must pass through — their SDKs handle offline internally
 const BYPASS = [
   'firestore.googleapis.com',
   'identitytoolkit.googleapis.com',
@@ -25,6 +26,7 @@ const BYPASS = [
   'accounts.google.com/o/oauth2'
 ];
 
+// ── Install: pre-cache critical assets ──
 self.addEventListener('install', e => {
   self.skipWaiting();
   e.waitUntil(
@@ -36,6 +38,7 @@ self.addEventListener('install', e => {
   );
 });
 
+// ── Activate: delete old caches ──
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
@@ -48,12 +51,18 @@ self.addEventListener('activate', e => {
   );
 });
 
+// ── Fetch: stale-while-revalidate strategy ──
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+
   const url = new URL(e.request.url);
+
+  // Let Firebase & Google auth requests pass through untouched
   if (BYPASS.some(h => url.href.includes(h))) return;
+
   e.respondWith(
     caches.match(e.request).then(cached => {
+      // Always fetch fresh in background to keep cache updated
       const networkFetch = fetch(e.request).then(resp => {
         if (resp && resp.status === 200 && resp.type !== 'error') {
           const clone = resp.clone();
@@ -61,9 +70,14 @@ self.addEventListener('fetch', e => {
         }
         return resp;
       }).catch(() => null);
+
+      // Serve cache instantly if available, update in background
       if (cached) return cached;
+
+      // Not cached — wait for network
       return networkFetch.then(resp => {
         if (resp) return resp;
+        // Offline fallback: return main HTML for navigation requests
         if (e.request.mode === 'navigate') return caches.match('./index.html');
         return new Response('Offline', { status: 503 });
       });
@@ -71,6 +85,7 @@ self.addEventListener('fetch', e => {
   );
 });
 
+// ── Handle notification requests from the page ──
 self.addEventListener('message', e => {
   if (e.data && e.data.type === 'SHOW_NOTIFICATION') {
     e.waitUntil(
@@ -84,6 +99,7 @@ self.addEventListener('message', e => {
   }
 });
 
+// ── Handle notification tap — bring app to focus ──
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   e.waitUntil(
