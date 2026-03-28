@@ -2,7 +2,7 @@
 // Radha Naam Jap — Service Worker
 // Update CACHE version when index.html changes
 // ═══════════════════════════════════════════════
-const CACHE = 'radha-jap-v5';  // bumped from v4 → v5 (stats enhancements)
+const CACHE = 'radha-jap-v8';  // bumped v7 → v8 (Vaishnava Panchang calendar integration)
 
 const PRECACHE = [
   './index.html',

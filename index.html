@@ -359,6 +359,11 @@ body::before{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%
 @keyframes fu28{0%{opacity:0.9;transform:translateY(0);}60%{opacity:0.7;}100%{opacity:0;transform:translateY(-90px);}}
 .n28meaning{font-size:12px;color:var(--a2);margin-top:6px;letter-spacing:1px;text-align:center;opacity:0.85;}
 .n28cycle{font-size:11px;color:var(--td);margin-top:10px;letter-spacing:2px;text-transform:uppercase;}
+.n28timers{display:flex;gap:14px;justify-content:center;margin-top:8px;flex-wrap:wrap;}
+.n28timer-box{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.n28timer-val{font-family:'EB Garamond',serif;font-size:20px;color:var(--a2);letter-spacing:2px;filter:drop-shadow(0 0 6px rgba(109,184,255,0.4));}
+.n28timer-val.gold{color:var(--gold);filter:drop-shadow(0 0 6px rgba(255,215,0,0.4));}
+.n28timer-lbl{font-size:9px;color:var(--td);letter-spacing:1.5px;text-transform:uppercase;}
 .n28prog{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:240px;margin-top:8px;}
 .n28dot{width:8px;height:8px;border-radius:50%;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.25);transition:all 0.2s;}
 .n28dot.done{background:var(--gold);border-color:var(--gold);box-shadow:0 0 5px rgba(255,215,0,0.7);}
@@ -489,6 +494,25 @@ body::before{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%
 .cdmo-occ-in{flex:1;background:rgba(0,0,0,0.3);border:1px solid rgba(255,215,0,0.25);border-radius:9px;padding:8px 11px;color:var(--tl);font-size:13px;font-family:'Inter',sans-serif;outline:none;}
 .cdmo-occ-in:focus{border-color:var(--gold);}
 .cdmo-occ-add{padding:8px 14px;border-radius:9px;border:none;background:linear-gradient(135deg,rgba(255,215,0,0.35),rgba(255,215,0,0.15));color:var(--gold);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;}
+/* Panchang panel in bottom sheet */
+.cdmo-panch{background:rgba(109,184,255,0.05);border:1px solid rgba(109,184,255,0.2);border-radius:14px;padding:13px 14px;margin-bottom:10px;}
+.cdmo-panch-label{font-size:10px;color:var(--a2);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.panch-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(74,144,226,0.1);font-size:12px;color:var(--tl);}
+.panch-row:last-child{border-bottom:none;padding-bottom:0;}
+.panch-key{color:var(--td);font-size:11px;min-width:80px;}
+.panch-val{color:var(--a2);text-align:right;font-family:'EB Garamond',serif;font-size:14px;}
+.panch-festivals{margin-top:10px;display:flex;flex-direction:column;gap:5px;}
+.panch-fest-item{background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.25);border-radius:10px;padding:7px 11px;font-size:12px;color:var(--gold);display:flex;align-items:center;gap:7px;}
+.panch-fest-item.ekadashi{background:rgba(109,184,255,0.08);border-color:rgba(109,184,255,0.3);color:var(--a2);}
+.panch-fest-item.vrat{background:rgba(46,204,113,0.07);border-color:rgba(46,204,113,0.25);color:#2ecc71;}
+.panch-loading{font-size:12px;color:var(--td);text-align:center;padding:8px 0;}
+/* Calendar Panchang dot indicator */
+.cc.panch-day{border-bottom:2px solid rgba(109,184,255,0.6);}
+.cc.festival-day{background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.3);}
+.cc .ccp{font-size:6px;color:var(--a2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;padding:0 1px;line-height:1.2;}
+/* Panchang location bar */
+.panch-loc-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(74,144,226,0.06);border:1px solid rgba(74,144,226,0.18);border-radius:12px;margin-bottom:10px;font-size:11px;color:var(--td);}
+.panch-loc-btn{background:rgba(74,144,226,0.15);border:none;border-radius:8px;padding:4px 10px;color:var(--a2);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;}
 </style>
 </head>
 <body>
@@ -649,6 +673,16 @@ body::before{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%
       <div class="n28meaning" id="n28meaning">The Supreme Beloved</div>
       <div class="n28cycle" id="n28cycle">Cycle 0 · tap to begin</div>
       <div class="n28prog" id="n28prog"></div>
+      <div class="n28timers">
+        <div class="n28timer-box">
+          <div class="n28timer-val" id="n28CycleTimer">0:00</div>
+          <div class="n28timer-lbl">Cycle Time</div>
+        </div>
+        <div class="n28timer-box">
+          <div class="n28timer-val gold" id="n28TotalTimer">0:00</div>
+          <div class="n28timer-lbl">Total Time</div>
+        </div>
+      </div>
     </div>
     <div style="display:flex;gap:8px;margin-top:8px">
       <button class="cb danger" onclick="App.undo28()">↩ Undo</button>
@@ -713,6 +747,10 @@ body::before{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%
 <!-- CALENDAR VIEW -->
 <div class="view" id="vc">
   <div class="vt">Jap Calendar</div>
+  <div class="panch-loc-bar" id="panchLocBar">
+    <span id="panchLocText" style="font-size:11px;color:var(--td)">📍 Location: detecting…</span>
+    <button class="panch-loc-btn" onclick="panchRefreshLocation()">Refresh GPS</button>
+  </div>
   <div class="ch">
     <button class="cnb" onclick="chm(-1)">‹</button>
     <div class="cmy" id="cmy"></div>
@@ -722,7 +760,7 @@ body::before{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%
     <div class="cdl">Sun</div><div class="cdl">Mon</div><div class="cdl">Tue</div>
     <div class="cdl">Wed</div><div class="cdl">Thu</div><div class="cdl">Fri</div><div class="cdl">Sat</div>
   </div>
-  <div style="padding:10px 14px 6px;font-size:11px;color:var(--td);text-align:center;letter-spacing:1px;">Tap a date to see details &amp; add occasion</div>
+  <div style="padding:10px 14px 6px;font-size:11px;color:var(--td);text-align:center;letter-spacing:1px;">Tap a date · 🔵 Panchang events · 🌟 Festivals</div>
 </div>
 
 <!-- CALENDAR DAY BOTTOM SHEET -->
@@ -749,6 +787,11 @@ body::before{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%
         <input type="text" class="cdmo-occ-in" id="cdmoOccIn" placeholder="e.g. Janmashtami, Ekadashi…">
         <button class="cdmo-occ-add" onclick="addOccasionFromSheet()">Add</button>
       </div>
+    </div>
+    <!-- Panchang Panel -->
+    <div class="cdmo-panch" id="cdmoPanchPanel">
+      <div class="cdmo-panch-label">🔱 Panchang <span id="cdmoPanchLoader" style="font-size:10px;color:var(--td);font-family:'Inter',sans-serif;font-weight:400;letter-spacing:0"></span></div>
+      <div id="cdmoPanchBody"><div class="panch-loading">Loading…</div></div>
     </div>
   </div>
 </div>
@@ -798,53 +841,127 @@ body::before{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%
     </div>
   </div>
 
-  <!-- ADD JAP MANUALLY TODAY — collapsible -->
-  <div class="cs-wrap" style="background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.2)">
-    <div class="cs-header" onclick="toggleCs('addJapTodayBody','addJapTodayChev')">
-      <h3 style="color:var(--green)">✍️ Add Jap Manually (Today)</h3>
-      <span class="cs-chevron" id="addJapTodayChev" style="color:var(--green)">▾</span>
+  <!-- ADD JAP MANUALLY — outer collapsible -->
+  <div class="cs-wrap" style="background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.25)">
+    <div class="cs-header" onclick="toggleCs('addJapManuallyBody','addJapManuallyChev')">
+      <h3 style="color:var(--green)">➕ Add Jap Manually</h3>
+      <span class="cs-chevron" id="addJapManuallyChev" style="color:var(--green)">▾</span>
     </div>
-    <div class="cs-body" id="addJapTodayBody">
-      <p style="font-size:12px;color:var(--td);margin-bottom:10px">Did jap by rosary, mentally, or any other way?</p>
-      <div class="fr"><input type="number" class="fi" id="manualJapIn" placeholder="Number of jap" min="1"><span class="fu">jap</span></div>
-      <div style="font-size:11px;color:var(--td);margin-bottom:8px">= <span id="manualMalaPreview">0</span> malas · Today will become: <span id="manualTodayPreview" style="color:var(--a2)">—</span></div>
-      <button class="pb" onclick="addManualJap()" style="background:linear-gradient(135deg,#27ae60,#2ecc71)">➕ Add to Today</button>
+    <div class="cs-body" id="addJapManuallyBody">
+      <p style="font-size:12px;color:var(--td);margin-bottom:12px">Jap done on Mala made of Sacred Tulsi Wood / Mala / Finger counts or other digital counter?</p>
+
+      <!-- Inner: Today -->
+      <div class="cs-wrap" style="background:rgba(46,204,113,0.05);border:1px solid rgba(46,204,113,0.18);margin-bottom:8px">
+        <div class="cs-header" onclick="toggleCs('addJapTodayBody','addJapTodayChev')" style="padding:10px 14px">
+          <h3 style="color:var(--green);font-size:10px">📅 TODAY</h3>
+          <span class="cs-chevron" id="addJapTodayChev" style="color:var(--green)">▾</span>
+        </div>
+        <div class="cs-body" id="addJapTodayBody">
+          <div class="fr"><input type="number" class="fi" id="manualJapIn" placeholder="Number of jap" min="1"><span class="fu">jap</span></div>
+          <div style="font-size:11px;color:var(--td);margin-bottom:8px">= <span id="manualMalaPreview">0</span> malas · Today will become: <span id="manualTodayPreview" style="color:var(--a2)">—</span></div>
+          <button class="pb" onclick="addManualJap()" style="background:linear-gradient(135deg,#27ae60,#2ecc71)">➕ Add to Today</button>
+        </div>
+      </div>
+
+      <!-- Inner: Other Day -->
+      <div class="cs-wrap" style="background:rgba(46,204,113,0.04);border:1px solid rgba(46,204,113,0.14);margin-bottom:8px">
+        <div class="cs-header" onclick="toggleCs('addJapOtherBody','addJapOtherChev')" style="padding:10px 14px">
+          <h3 style="color:var(--green);font-size:10px">📆 OTHER DAY</h3>
+          <span class="cs-chevron" id="addJapOtherChev" style="color:var(--green)">▾</span>
+        </div>
+        <div class="cs-body" id="addJapOtherBody">
+          <div class="fr"><input type="date" class="fi" id="addJapOtherDate" style="font-size:13px"></div>
+          <div class="fr"><input type="number" class="fi" id="addJapOtherIn" placeholder="Number of jap" min="1"><span class="fu">jap</span></div>
+          <div style="font-size:11px;color:var(--td);margin-bottom:8px">That day will become: <span id="addJapOtherPreview" style="color:var(--green)">—</span></div>
+          <button class="pb" onclick="addOtherDayJap()" style="background:linear-gradient(135deg,#1a6b3c,#27ae60)">➕ Add to Selected Day</button>
+        </div>
+      </div>
+
+      <!-- Inner: Before This App (Lifetime) -->
+      <div class="cs-wrap" style="background:rgba(109,184,255,0.05);border:1px solid rgba(109,184,255,0.18)">
+        <div class="cs-header" onclick="toggleCs('prevJapBody','prevJapChev')" style="padding:10px 14px">
+          <h3 style="color:var(--a2);font-size:10px">📜 BEFORE THIS APP (LIFETIME)</h3>
+          <span class="cs-chevron" id="prevJapChev" style="color:var(--a2)">▾</span>
+        </div>
+        <div class="cs-body" id="prevJapBody">
+          <p style="font-size:12px;color:var(--td);margin-bottom:10px">Jap done before using this app? Add to lifetime total.</p>
+          <div class="fr"><input type="number" class="fi" id="prevJapIn" placeholder="e.g. 50000" min="1"><span class="fu">jap</span></div>
+          <div style="font-size:11px;color:var(--td);margin-bottom:8px">= <span id="prevMalaPreview">0</span> malas · Lifetime: <span id="prevLifetimePreview" style="color:var(--gold)">—</span></div>
+          <button class="pb" onclick="addPrevJap()" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)">📿 Add to Lifetime</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- ADD JAP TO OTHER DAY — collapsible (new) -->
-  <div class="cs-wrap" style="background:rgba(46,204,113,0.04);border:1px solid rgba(46,204,113,0.15)">
-    <div class="cs-header" onclick="toggleCs('addJapOtherBody','addJapOtherChev')">
-      <h3 style="color:var(--green)">✍️ Add Jap — Other Day</h3>
-      <span class="cs-chevron" id="addJapOtherChev" style="color:var(--green)">▾</span>
+  <!-- DEDUCT JAP — outer collapsible -->
+  <div class="cs-wrap" style="background:rgba(232,51,109,0.05);border:1px solid rgba(232,51,109,0.25)">
+    <div class="cs-header" onclick="toggleCs('deductJapMainBody','deductJapMainChev')">
+      <h3 style="color:var(--rl)">✂️ Deduct Jap</h3>
+      <span class="cs-chevron" id="deductJapMainChev" style="color:var(--rl)">▾</span>
     </div>
-    <div class="cs-body" id="addJapOtherBody">
-      <p style="font-size:12px;color:var(--td);margin-bottom:10px">Add jap count to any past or future date.</p>
-      <div class="fr"><input type="date" class="fi" id="addJapOtherDate" style="font-size:13px"></div>
-      <div class="fr"><input type="number" class="fi" id="addJapOtherIn" placeholder="Number of jap" min="1"><span class="fu">jap</span></div>
-      <div style="font-size:11px;color:var(--td);margin-bottom:8px">That day will become: <span id="addJapOtherPreview" style="color:var(--green)">—</span></div>
-      <button class="pb" onclick="addOtherDayJap()" style="background:linear-gradient(135deg,#1a6b3c,#27ae60)">➕ Add to Selected Day</button>
+    <div class="cs-body" id="deductJapMainBody">
+      <p style="font-size:12px;color:var(--td);margin-bottom:12px">Jap you want to deduct — for dedicating to someone, wrong entry, or system bug showing false results.</p>
+
+      <!-- Inner: Today -->
+      <div class="cs-wrap" style="background:rgba(232,51,109,0.05);border:1px solid rgba(232,51,109,0.18);margin-bottom:8px">
+        <div class="cs-header" onclick="toggleCs('deductTodayBody','deductTodayChev')" style="padding:10px 14px">
+          <h3 style="color:var(--rl);font-size:10px">📅 TODAY</h3>
+          <span class="cs-chevron" id="deductTodayChev" style="color:var(--rl)">▾</span>
+        </div>
+        <div class="cs-body" id="deductTodayBody">
+          <div class="fr"><input type="number" class="fi" id="deductTodayIn" placeholder="Number to deduct" min="1"><span class="fu">jap</span></div>
+          <div style="font-size:11px;color:var(--td);margin-bottom:8px">Today will become: <span id="deductTodayPreview" style="color:var(--rl)">—</span></div>
+          <button class="pb" onclick="deductTodayJap()" style="background:linear-gradient(135deg,#c0392b,#e74c3c)">✂️ Deduct from Today</button>
+        </div>
+      </div>
+
+      <!-- Inner: Other Day -->
+      <div class="cs-wrap" style="background:rgba(232,51,109,0.04);border:1px solid rgba(232,51,109,0.14);margin-bottom:8px">
+        <div class="cs-header" onclick="toggleCs('deductOtherBody','deductOtherChev')" style="padding:10px 14px">
+          <h3 style="color:var(--rl);font-size:10px">📆 OTHER DAY</h3>
+          <span class="cs-chevron" id="deductOtherChev" style="color:var(--rl)">▾</span>
+        </div>
+        <div class="cs-body" id="deductOtherBody">
+          <div class="fr"><input type="date" class="fi" id="deductOtherDate" style="font-size:13px"></div>
+          <div class="fr"><input type="number" class="fi" id="deductOtherIn" placeholder="Number to deduct" min="1"><span class="fu">jap</span></div>
+          <div style="font-size:11px;color:var(--td);margin-bottom:8px">That day will become: <span id="deductOtherPreview" style="color:var(--rl)">—</span></div>
+          <button class="pb" onclick="deductOtherJap()" style="background:linear-gradient(135deg,#922b21,#c0392b)">✂️ Deduct from Selected Day</button>
+        </div>
+      </div>
+
+      <!-- Inner: Name Jap — Lifetime -->
+      <div class="cs-wrap" style="background:rgba(232,51,109,0.04);border:1px solid rgba(232,51,109,0.14)">
+        <div class="cs-header" onclick="toggleCs('nameJapDeductBody','nameJapDeductChev')" style="padding:10px 14px">
+          <h3 style="color:var(--rl);font-size:10px">📿 NAME JAP — LIFETIME</h3>
+          <span class="cs-chevron" id="nameJapDeductChev" style="color:var(--rl)">▾</span>
+        </div>
+        <div class="cs-body" id="nameJapDeductBody">
+          <div style="font-size:11px;color:var(--td);margin-bottom:8px">Currently deducted: <span id="nameJapDeductCur" style="color:var(--rl);font-weight:600">0</span> jap (<span id="nameJapDeductMalas" style="color:var(--rl)">0</span> malas)</div>
+          <!-- Add deduction -->
+          <div style="background:rgba(232,51,109,0.06);border:1px solid rgba(232,51,109,0.18);border-radius:12px;padding:11px;margin-bottom:10px">
+            <div style="font-size:10px;color:var(--rl);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;font-weight:600">➕ Add to Deduction</div>
+            <div class="fr"><input type="number" class="fi" id="nameJapDeductIn" placeholder="e.g. 5000" min="1" style="border-color:rgba(232,51,109,0.35)"><span class="fu" style="color:var(--rl)">jap</span></div>
+            <div style="font-size:11px;color:var(--td);margin-bottom:8px">New lifetime total will become: <span id="nameJapDeductPreview" style="color:var(--rl)">—</span></div>
+            <button class="pb" onclick="addNameJapDeduct()" style="background:linear-gradient(135deg,#c0392b,#e74c3c)">✂️ Apply Deduction</button>
+          </div>
+          <!-- Remove deduction -->
+          <div style="background:rgba(232,51,109,0.03);border:1px solid rgba(232,51,109,0.12);border-radius:12px;padding:11px">
+            <div style="font-size:10px;color:var(--rl);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;font-weight:600">↩ Remove Deduction</div>
+            <div class="fr"><input type="number" class="fi" id="nameJapRestoreIn" placeholder="Amount to restore" min="1" style="border-color:rgba(232,51,109,0.25)"><span class="fu" style="color:var(--rl)">jap</span></div>
+            <div style="font-size:11px;color:var(--td);margin-bottom:8px">New lifetime total will become: <span id="nameJapRestorePreview" style="color:var(--a2)">—</span></div>
+            <button class="pb" onclick="removeNameJapDeduct()" style="background:linear-gradient(135deg,#1a5e3e,#27ae60)">↩ Restore to Lifetime</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- PREVIOUS JAP LIFETIME — collapsible -->
-  <div class="cs-wrap" style="background:rgba(109,184,255,0.05);border:1px solid rgba(109,184,255,0.2)">
-    <div class="cs-header" onclick="toggleCs('prevJapBody','prevJapChev')">
-      <h3 style="color:var(--a2)">📜 Previous Jap (Lifetime)</h3>
-      <span class="cs-chevron" id="prevJapChev" style="color:var(--a2)">▾</span>
-    </div>
-    <div class="cs-body" id="prevJapBody">
-      <p style="font-size:12px;color:var(--td);margin-bottom:10px">Jap done before this app? Add to lifetime total.</p>
-      <div class="fr"><input type="number" class="fi" id="prevJapIn" placeholder="e.g. 50000" min="1"><span class="fu">jap</span></div>
-      <div style="font-size:11px;color:var(--td);margin-bottom:8px">= <span id="prevMalaPreview">0</span> malas · Lifetime: <span id="prevLifetimePreview" style="color:var(--gold)">—</span></div>
-      <button class="pb" onclick="addPrevJap()" style="background:linear-gradient(135deg,#8B5CF6,#6D28D9)">📿 Add to Lifetime</button>
-    </div>
-  </div>
-
-  <!-- JAP TIME MANUAL ENTRY — new section -->
+  <!-- JAP TIME ADD/DEDUCT — section -->
   <div class="cs-wrap" style="background:rgba(255,215,0,0.04);border:1px solid rgba(255,215,0,0.18)">
     <div class="cs-header" onclick="toggleCs('japTimeBody','japTimeChev')">
-      <h3 style="color:var(--gold)">⏱ Jap Time — Manual Entry</h3>
+      <h3 style="color:var(--gold)">⏱ Jap Time — Add / Deduct</h3>
       <span class="cs-chevron" id="japTimeChev" style="color:var(--gold)">▾</span>
     </div>
     <div class="cs-body" id="japTimeBody">
@@ -887,33 +1004,6 @@ body::before{content:'';position:fixed;top:50%;left:50%;transform:translate(-50%
         <div style="font-size:11px;color:var(--td);margin-bottom:8px">That day will become: <span id="jtDedOtherPreview" style="color:var(--rl)">—</span></div>
         <button class="pb" onclick="deductJapTimeOther()" style="background:linear-gradient(135deg,#922b21,#c0392b)">✂️ Deduct Time from Selected Day</button>
       </div>
-    </div>
-  </div>
-
-  <!-- DEDUCT JAP TODAY — collapsible -->
-  <div class="cs-wrap" style="background:rgba(232,51,109,0.05);border:1px solid rgba(232,51,109,0.2)">
-    <div class="cs-header" onclick="toggleCs('deductTodayBody','deductTodayChev')">
-      <h3 style="color:var(--rl)">✂️ Deduct Jap — Today</h3>
-      <span class="cs-chevron" id="deductTodayChev" style="color:var(--rl)">▾</span>
-    </div>
-    <div class="cs-body" id="deductTodayBody">
-      <div class="fr"><input type="number" class="fi" id="deductTodayIn" placeholder="Number to deduct" min="1"><span class="fu">jap</span></div>
-      <div style="font-size:11px;color:var(--td);margin-bottom:8px">Today will become: <span id="deductTodayPreview" style="color:var(--rl)">—</span></div>
-      <button class="pb" onclick="deductTodayJap()" style="background:linear-gradient(135deg,#c0392b,#e74c3c)">✂️ Deduct from Today</button>
-    </div>
-  </div>
-
-  <!-- DEDUCT JAP OTHER DAY — collapsible -->
-  <div class="cs-wrap" style="background:rgba(232,51,109,0.04);border:1px solid rgba(232,51,109,0.15)">
-    <div class="cs-header" onclick="toggleCs('deductOtherBody','deductOtherChev')">
-      <h3 style="color:var(--rl)">✂️ Deduct Jap — Other Day</h3>
-      <span class="cs-chevron" id="deductOtherChev" style="color:var(--rl)">▾</span>
-    </div>
-    <div class="cs-body" id="deductOtherBody">
-      <div class="fr"><input type="date" class="fi" id="deductOtherDate" style="font-size:13px"></div>
-      <div class="fr"><input type="number" class="fi" id="deductOtherIn" placeholder="Number to deduct" min="1"><span class="fu">jap</span></div>
-      <div style="font-size:11px;color:var(--td);margin-bottom:8px">That day will become: <span id="deductOtherPreview" style="color:var(--rl)">—</span></div>
-      <button class="pb" onclick="deductOtherJap()" style="background:linear-gradient(135deg,#922b21,#c0392b)">✂️ Deduct from Selected Day</button>
     </div>
   </div>
 
@@ -1215,23 +1305,23 @@ const App = {
   },
 
   async save() {
-    // Save main settings to IDB
+    // Save full state snapshot to IDB so all dates and edits persist locally
     await this.dbPut('state', 'main', {
       ms: this.S.ms, dt: this.S.dt, lt: this.S.lt,
       cfg: this.S.cfg, stotrams: this.S.stotrams, brahma: this.S.brahma,
       customSt: this.S.customSt, sankalpas: this.S.sankalpas, occasions: this.S.occasions,
+      history: this.S.history, h28: this.S.h28, timerHistory: this.S.timerHistory,
       syncBaseline: this.S.syncBaseline, syncBaseline28: this.S.syncBaseline28,
       syncBaselineTimer: this.S.syncBaselineTimer, migrationV2Done: this.S.migrationV2Done
     });
-    // Save count stores individually per day
+    // Keep per-day stores updated for compatibility with existing offline data
     const tk = this.S.tk;
     if (this.S.history[tk] !== undefined) await this.dbPut('history', tk, this.S.history[tk]);
     if (this.S.h28[tk] !== undefined) await this.dbPut('h28', tk, this.S.h28[tk]);
     if (this.S.timerHistory[tk] !== undefined) await this.dbPut('timerHistory', tk, this.S.timerHistory[tk]);
-    // Save malaLog — only keep today's log
     if (this.S.malaLog) await this.dbPut('malaLog', 'today', { date: tk, log: this.S.malaLog });
-    // Also mirror to localStorage as fallback
     try { localStorage.setItem('rjap5', JSON.stringify(this.S)); } catch(e) {}
+    if (fbUser && !fbForcedSignout && !this._suspendCloudSync) fbDebouncedPush();
   },
 
   async load() {
@@ -1255,6 +1345,11 @@ const App = {
     this.S.h28 = await this.dbGetAll('h28');
     this.S.timerHistory = await this.dbGetAll('timerHistory');
 
+    // Merge full snapshots saved in main state so past/future edits also persist locally
+    if (main?.history) this.S.history = { ...main.history, ...this.S.history };
+    if (main?.h28) this.S.h28 = { ...main.h28, ...this.S.h28 };
+    if (main?.timerHistory) this.S.timerHistory = { ...main.timerHistory, ...this.S.timerHistory };
+
     // Merge localStorage history as fallback for old data
     try {
       const ls = localStorage.getItem('rjap5');
@@ -1274,12 +1369,16 @@ const App = {
     if (!this.S.timerHistory) this.S.timerHistory = {};
     if (!this.S.sankalpas) this.S.sankalpas = [];
     if (!this.S.occasions) this.S.occasions = {};
-    // Load malaLog — only if it's from today
+    // Load malaLog — only use if it's from today, otherwise start fresh
     const malaLogRec = await this.dbGet('malaLog', 'today');
     if (malaLogRec && malaLogRec.date === this.S.tk) {
       this.S.malaLog = malaLogRec.log || [];
     } else {
+      // New day — discard any previous log entirely and push empty to Firebase
       this.S.malaLog = [];
+      await this.dbPut('malaLog', 'today', { date: this.S.tk, log: [] });
+      // Force push empty log to Firebase so stale cloud data is overwritten
+      setTimeout(() => { if (fbUser && !fbForcedSignout) fbDebouncedPush(); }, 3000);
     }
     STLIST.forEach(x => { if (!this.S.stotrams[x.id]) this.S.stotrams[x.id] = {}; });
   },
@@ -1290,7 +1389,7 @@ const App = {
   },
 
   gTod() { return this.S.history[this.S.tk] || 0; },
-  gTot() { return Object.values(this.S.history).reduce((a,b) => a+b, 0); },
+  gTot() { return Math.max(0, Object.values(this.S.history).reduce((a,b) => a+b, 0) - (this.S.nameJapDeduct || 0)); },
 
   // ── Haptic Heartbeat ──
   // 10ms on every tap; triple long pulse (200-80-200-80-300ms) synced with mala complete
@@ -1453,6 +1552,58 @@ const App = {
     }
   },
 
+  // ── 28 Names timers ──
+  _n28CycleStart: null,
+  _n28TotalStart: null,
+  _n28TimerInterval: null,
+  _n28SavedSecs: 0,  // seconds already flushed into timerHistory
+
+  start28Timers() {
+    if (!this._n28TotalStart) { this._n28TotalStart = Date.now(); this._n28SavedSecs = 0; }
+    if (!this._n28CycleStart) this._n28CycleStart = Date.now();
+    if (this._n28TimerInterval) return;
+    this._n28TimerInterval = setInterval(() => {
+      const fmt = s => Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);
+      const cycSec = Math.floor((Date.now() - this._n28CycleStart) / 1000);
+      const totSec = Math.floor((Date.now() - this._n28TotalStart) / 1000);
+      const ce = document.getElementById('n28CycleTimer');
+      const te = document.getElementById('n28TotalTimer');
+      if (ce) ce.textContent = fmt(cycSec);
+      if (te) te.textContent = fmt(totSec);
+    }, 1000);
+  },
+
+  flush28TimeToHistory() {
+    if (!this._n28TotalStart) return;
+    const elapsed = Math.floor((Date.now() - this._n28TotalStart) / 1000);
+    const newSecs = elapsed - this._n28SavedSecs;
+    if (newSecs > 0) {
+      this.S.timerHistory[this.S.tk] = (this.S.timerHistory[this.S.tk] || 0) + newSecs;
+      this._n28SavedSecs = elapsed;
+      this.save(); fbDebouncedPush();
+    }
+  },
+
+  resetCycleTimer28() {
+    this.flush28TimeToHistory();
+    this._n28CycleStart = Date.now();
+    const ce = document.getElementById('n28CycleTimer');
+    if (ce) ce.textContent = '0:00';
+  },
+
+  stopAll28Timers() {
+    this.flush28TimeToHistory();
+    clearInterval(this._n28TimerInterval);
+    this._n28TimerInterval = null;
+    this._n28CycleStart = null;
+    this._n28TotalStart = null;
+    this._n28SavedSecs = 0;
+    const ce = document.getElementById('n28CycleTimer');
+    const te = document.getElementById('n28TotalTimer');
+    if (ce) ce.textContent = '0:00';
+    if (te) te.textContent = '0:00';
+  },
+
   // ── 28 Names tap ──
   h28(e) {
     e.preventDefault();
@@ -1461,6 +1612,7 @@ const App = {
     this.S.h28[this.S.tk]++;
     this.save(); fbDebouncedPush();
     this.vib([10]);
+    this.start28Timers();
     spawnName28(e, NAMES28[posBefore].name);
     const nm = Math.floor(this.S.h28[this.S.tk] / (this.S.ms || 108));
     if (nm > this.lm28) { this.lm28 = nm; this.malaOk(); App.silentMonkBackup(); }
@@ -1533,6 +1685,23 @@ document.addEventListener('touchend', e => { const n = Date.now(); if (n - lt2 <
 // Stats timer tick
 setInterval(() => { if (App.timerRunning) App.updateTimerToday(); }, 1000);
 
+// ── Midnight date-rollover check ──
+// Fixes mala log not resetting when app stays open past midnight
+setInterval(() => {
+  const newTk = App.getTk();
+  if (newTk !== App.S.tk) {
+    App.S.tk = newTk;
+    App.S.malaLog = [];
+    if (!App.S.history[App.S.tk]) App.S.history[App.S.tk] = 0;
+    if (!App.S.h28[App.S.tk]) App.S.h28[App.S.tk] = 0;
+    if (!App.S.timerHistory[App.S.tk]) App.S.timerHistory[App.S.tk] = 0;
+    App.lmc = 0;
+    App.save();
+    App.ua();
+    uStats();
+  }
+}, 60000);
+
 // ── Toast ──
 function toast(msg) {
   let t = document.getElementById('toast');
@@ -1583,6 +1752,7 @@ function sv(id, btn) {
   if (id === 'vb') renderBcal();
   if (id === 'vst') renderSt();
   if (id === 'v28') { u28(); render28Dots(get28Pos()); }
+  else { App.flush28TimeToHistory(); }
   if (id === 'vset') {
     if (App.S.dt) document.getElementById('dtIn').value = App.S.dt;
     if (App.S.lt) document.getElementById('ltIn').value = App.S.lt;
@@ -1601,7 +1771,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Live preview for new jap entry fields — trigger uStats on any change
   ['manualJapIn','prevJapIn','addJapOtherIn','addJapOtherDate','deductTodayIn','deductOtherIn','deductOtherDate',
    'jtAddTodayMin','jtAddTodaySec','jtAddOtherMin','jtAddOtherSec','jtAddOtherDate',
-   'jtDedTodayMin','jtDedTodaySec','jtDedOtherMin','jtDedOtherSec','jtDedOtherDate'].forEach(id => {
+   'jtDedTodayMin','jtDedTodaySec','jtDedOtherMin','jtDedOtherSec','jtDedOtherDate',
+   'nameJapDeductIn','nameJapRestoreIn'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('input', uStats);
     if (el) el.addEventListener('change', uStats);
@@ -1656,6 +1827,31 @@ function addPrevJap() {
   App.save(); App.ua(); fbDebouncedPush();
   document.getElementById('prevJapIn').value = '';
   toast('Added ' + n.toLocaleString() + ' jap to lifetime! 🙏 Jai Radhe!');
+}
+
+// ── Deduct Name Jap from Lifetime ──
+function addNameJapDeduct() {
+  const n = parseInt(document.getElementById('nameJapDeductIn').value) || 0;
+  if (n <= 0) { toast('Please enter a number > 0'); return; }
+  App.S.nameJapDeduct = (App.S.nameJapDeduct || 0) + n;
+  App.save(); App.ua(); fbDebouncedPush();
+  document.getElementById('nameJapDeductIn').value = '';
+  document.getElementById('nameJapDeductPreview').textContent = '—';
+  uStats();
+  toast('Deducted ' + n.toLocaleString() + ' name jap from lifetime total 🙏');
+}
+
+function removeNameJapDeduct() {
+  const n = parseInt(document.getElementById('nameJapRestoreIn').value) || 0;
+  if (n <= 0) { toast('Please enter a number > 0'); return; }
+  const cur = App.S.nameJapDeduct || 0;
+  if (n > cur) { toast('Cannot restore more than currently deducted (' + cur.toLocaleString() + ')'); return; }
+  App.S.nameJapDeduct = cur - n;
+  App.save(); App.ua(); fbDebouncedPush();
+  document.getElementById('nameJapRestoreIn').value = '';
+  document.getElementById('nameJapRestorePreview').textContent = '—';
+  uStats();
+  toast('Restored ' + n.toLocaleString() + ' jap to lifetime total 🙏');
 }
 
 function deductTodayJap() {
@@ -1768,7 +1964,7 @@ function uStats() {
   const ws = wk.reduce((s,k) => s + (App.S.history[k]||0), 0);
   const mp = now.toISOString().slice(0,7);
   let ms2 = 0, best = 0, streak = 0;
-  Object.entries(App.S.history).forEach(([k,v]) => { if (k.startsWith(mp)) ms2 += v; if (v > best) best = v; });
+  Object.entries(App.S.history).forEach(([k,v]) => { if (k.startsWith(mp)) ms2 += v; if (!k.startsWith('prev_') && v > best) best = v; });
   const d2 = new Date();
   while (streak < 999) { const k = d2.toISOString().split('T')[0]; if ((App.S.history[k]||0) > 0) { streak++; d2.setDate(d2.getDate()-1); } else break; }
   document.getElementById('sTod').textContent = tod;
@@ -1811,6 +2007,17 @@ function uStats() {
   if (aoi && aod) { const n = parseInt(aoi.value)||0; const d = aod.value; const cur = d ? (App.S.history[d]||0) : 0; document.getElementById('addJapOtherPreview').textContent = n>0 && d ? (cur+n) : '—'; }
   if (dti2) { const n = parseInt(dti2.value)||0; document.getElementById('deductTodayPreview').textContent = n>0 ? Math.max(0, tod-n) : '—'; }
   if (doi && dod) { const n = parseInt(doi.value)||0; const d = dod.value; const cur = d ? (App.S.history[d]||0) : 0; document.getElementById('deductOtherPreview').textContent = n>0 && d ? Math.max(0,cur-n) : '—'; }
+  // Name Jap Deduct live previews
+  const curDeduct = App.S.nameJapDeduct || 0;
+  const rawTot = Object.values(App.S.history).reduce((a,b)=>a+b,0);
+  const njdi = document.getElementById('nameJapDeductIn');
+  const njri = document.getElementById('nameJapRestoreIn');
+  const njdCur = document.getElementById('nameJapDeductCur');
+  const njdMalas = document.getElementById('nameJapDeductMalas');
+  if (njdCur) njdCur.textContent = curDeduct.toLocaleString();
+  if (njdMalas) njdMalas.textContent = Math.floor(curDeduct/(ms)).toLocaleString();
+  if (njdi) { const n=parseInt(njdi.value)||0; document.getElementById('nameJapDeductPreview').textContent = n>0 ? Math.max(0,rawTot-curDeduct-n).toLocaleString() : '—'; }
+  if (njri) { const n=parseInt(njri.value)||0; document.getElementById('nameJapRestorePreview').textContent = n>0 ? Math.min(rawTot, Math.max(0,rawTot-curDeduct+n)).toLocaleString() : '—'; }
   // Jap time previews
   function _fmtSec(s) { const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60; return (h>0?h+'h ':'')+m+'m '+sc+'s'; }
   const curTimeTod = App.S.timerHistory[App.S.tk]||0;
@@ -1876,12 +2083,12 @@ function cr2(tp) {
 }
 function doReset() {
   if (pr === 'today') { App.S.history[App.S.tk] = 0; App.lmc = 0; App.S.malaLog = []; }
-  else if (pr === '28today') { App.S.h28[App.S.tk] = 0; App.lm28 = 0; u28(); }
+  else if (pr === '28today') { App.S.h28[App.S.tk] = 0; App.lm28 = 0; App.stopAll28Timers(); u28(); }
   else if (pr === 'range') {
     const f = document.getElementById('rfrom').value, to = document.getElementById('rto').value;
     Object.keys(App.S.history).forEach(k => { if (k >= f && k <= to) { App.S.history[k] = 0; if (App.S.timerHistory[k]) App.S.timerHistory[k] = 0; } });
   } else {
-    App.S.history = {}; App.S.h28 = {}; App.S.dt = 0; App.S.lt = 0;
+    App.S.history = {}; App.S.h28 = {}; App.S.dt = 0; App.S.lt = 0; App.S.nameJapDeduct = 0;
     App.S.stotrams = {}; App.S.brahma = {}; App.S.timerHistory = {}; App.S.malaLog = [];
     App.lmc = 0; App.lm28 = 0;
     STLIST.forEach(x => { App.S.stotrams[x.id] = {}; });
@@ -1898,7 +2105,7 @@ function exportAllData() {
     history: App.S.history||{}, h28: App.S.h28||{}, timerHistory: App.S.timerHistory||{},
     stotrams: App.S.stotrams||{}, brahma: App.S.brahma||{}, customSt: App.S.customSt||[],
     sankalpas: App.S.sankalpas||[], occasions: App.S.occasions||{},
-    ms: App.S.ms||108, dt: App.S.dt||0, lt: App.S.lt||0, cfg: App.S.cfg||{}
+    ms: App.S.ms||108, dt: App.S.dt||0, lt: App.S.lt||0, nameJapDeduct: App.S.nameJapDeduct||0, cfg: App.S.cfg||{}
   };
   const blob = new Blob([JSON.stringify(backup,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -1928,6 +2135,7 @@ function importAllData(input) {
       if (data.ms) App.S.ms = data.ms;
       if (data.dt !== undefined) App.S.dt = data.dt;
       if (data.lt !== undefined) App.S.lt = data.lt;
+      if (data.nameJapDeduct !== undefined) App.S.nameJapDeduct = data.nameJapDeduct;
       if (data.cfg) App.S.cfg = {...App.S.cfg, ...data.cfg};
       App.S.syncBaseline = JSON.parse(JSON.stringify(App.S.history));
       App.S.syncBaseline28 = JSON.parse(JSON.stringify(App.S.h28));
@@ -2127,84 +2335,75 @@ function fbSignOut() {
   fbAuth.signOut().then(() => toast('Signed out 🙏'));
 }
 
-// ── Firestore Delta Sync ──
+// ── Firestore Full-State Sync ──
 async function fbPushDelta() {
-  if (!fbUser) return;
-  setSyncPill('syncing', 'Syncing…');
-  const docRef = fbDb.collection('users').doc(fbUser.uid).collection('data').doc('main');
-  const updates = {};
-  let hasDelta = false;
-  [['history','syncBaseline'],['h28','syncBaseline28'],['timerHistory','syncBaselineTimer']].forEach(([field,baseKey]) => {
-    const local = App.S[field] || {}, base = App.S[baseKey] || {};
-    for (const day in local) {
-      const delta = (local[day]||0) - (base[day]||0);
-      if (delta > 0) { updates[field+'.'+day] = firebase.firestore.FieldValue.increment(delta); hasDelta = true; }
-    }
-  });
-  updates.stotrams = App.S.stotrams||{}; updates.brahma = App.S.brahma||{};
-  updates.customSt = App.S.customSt||[]; updates.sankalpas = App.S.sankalpas||[];
-  updates.occasions = App.S.occasions||{}; updates.ms = App.S.ms||108;
-  updates.dt = App.S.dt||0; updates.lt = App.S.lt||0; updates.cfg = App.S.cfg||{};
-  updates.lastSync = firebase.firestore.FieldValue.serverTimestamp();
-  updates.deviceId = fbDeviceId;
-  try {
-    await docRef.update(updates);
-  } catch(e) {
-    if (e.code === 'not-found' || (e.message && e.message.toLowerCase().includes('no document'))) {
-      await fbPushFull(); return;
-    }
-    setSyncPill('error', 'Sync failed'); return;
-  }
-  if (hasDelta) {
-    App.S.syncBaseline = JSON.parse(JSON.stringify(App.S.history||{}));
-    App.S.syncBaseline28 = JSON.parse(JSON.stringify(App.S.h28||{}));
-    App.S.syncBaselineTimer = JSON.parse(JSON.stringify(App.S.timerHistory||{}));
-    App.save();
-  }
-  setSyncPill('', '☁️ Synced ' + new Date().toLocaleTimeString());
+  return fbPushFull();
 }
 
 async function fbPushFull() {
   if (!fbUser) return;
+  setSyncPill('syncing', 'Syncing…');
   const payload = {
     history: App.S.history||{}, h28: App.S.h28||{}, stotrams: App.S.stotrams||{},
     brahma: App.S.brahma||{}, customSt: App.S.customSt||[], timerHistory: App.S.timerHistory||{},
-    sankalpas: App.S.sankalpas||[], occasions: App.S.occasions||{},
-    ms: App.S.ms||108, dt: App.S.dt||0, lt: App.S.lt||0, cfg: App.S.cfg||{},
+    sankalpas: App.S.sankalpas||[], occasions: App.S.occasions||{}, malaLog: App.S.malaLog||[], malaLogDate: App.S.tk,
+    ms: App.S.ms||108, dt: App.S.dt||0, lt: App.S.lt||0, nameJapDeduct: App.S.nameJapDeduct||0, cfg: App.S.cfg||{},
     lastSync: firebase.firestore.FieldValue.serverTimestamp(),
     deviceId: fbDeviceId
   };
-  await fbDb.collection('users').doc(fbUser.uid).collection('data').doc('main').set(payload);
-  App.S.syncBaseline = JSON.parse(JSON.stringify(App.S.history||{}));
-  App.S.syncBaseline28 = JSON.parse(JSON.stringify(App.S.h28||{}));
-  App.S.syncBaselineTimer = JSON.parse(JSON.stringify(App.S.timerHistory||{}));
-  App.save();
-  setSyncPill('', '☁️ Full sync done');
+  try {
+    await fbDb.collection('users').doc(fbUser.uid).collection('data').doc('main').set(payload);
+    App.S.syncBaseline = JSON.parse(JSON.stringify(App.S.history||{}));
+    App.S.syncBaseline28 = JSON.parse(JSON.stringify(App.S.h28||{}));
+    App.S.syncBaselineTimer = JSON.parse(JSON.stringify(App.S.timerHistory||{}));
+    App._suspendCloudSync = true;
+    await App.save();
+    App._suspendCloudSync = false;
+    setSyncPill('', '☁️ Synced ' + new Date().toLocaleTimeString());
+  } catch(e) {
+    App._suspendCloudSync = false;
+    console.warn('Full sync failed:', e.message);
+    setSyncPill('error', 'Sync failed');
+  }
 }
 
 function fbApplyRemote(d) {
   if (d.deviceId && d.deviceId === fbDeviceId) return;
-  [['history','syncBaseline'],['h28','syncBaseline28'],['timerHistory','syncBaselineTimer']].forEach(([field,baseKey]) => {
-    if (!d[field]) return;
-    if (!App.S[field]) App.S[field] = {};
-    const allDays = new Set([...Object.keys(App.S[field]),...Object.keys(d[field])]);
-    allDays.forEach(day => { App.S[field][day] = Math.max(App.S[field][day]||0, d[field][day]||0); });
-    App.S[baseKey] = JSON.parse(JSON.stringify(App.S[field]));
-  });
-  if (d.stotrams) { if (!App.S.stotrams) App.S.stotrams = {}; for (const stId in d.stotrams) { if (!App.S.stotrams[stId]) App.S.stotrams[stId] = {}; const rDays = d.stotrams[stId]||{}; Object.keys(rDays).forEach(day => { App.S.stotrams[stId][day] = Math.max(App.S.stotrams[stId][day]||0, rDays[day]||0); }); } }
-  if (d.brahma) { if (!App.S.brahma) App.S.brahma = {}; for (const day in d.brahma) { const rem = d.brahma[day], loc = App.S.brahma[day]; if (!loc) App.S.brahma[day] = rem; else if (rem && rem.status === 'b') App.S.brahma[day] = rem; } }
-  if (d.customSt) App.S.customSt = d.customSt;
-  if (d.sankalpas) App.S.sankalpas = d.sankalpas;
-  if (d.occasions) App.S.occasions = {...App.S.occasions,...d.occasions};
+  if ('history' in d) App.S.history = JSON.parse(JSON.stringify(d.history || {}));
+  if ('h28' in d) App.S.h28 = JSON.parse(JSON.stringify(d.h28 || {}));
+  if ('timerHistory' in d) App.S.timerHistory = JSON.parse(JSON.stringify(d.timerHistory || {}));
+  if ('stotrams' in d) App.S.stotrams = JSON.parse(JSON.stringify(d.stotrams || {}));
+  if ('brahma' in d) App.S.brahma = JSON.parse(JSON.stringify(d.brahma || {}));
+  if ('customSt' in d) App.S.customSt = JSON.parse(JSON.stringify(d.customSt || []));
+  if ('sankalpas' in d) App.S.sankalpas = JSON.parse(JSON.stringify(d.sankalpas || []));
+  if ('occasions' in d) App.S.occasions = JSON.parse(JSON.stringify(d.occasions || {}));
+  // Only apply malaLog from Firebase if it belongs to today
+  if ('malaLog' in d) {
+    const remoteMalaLog = d.malaLog || [];
+    const remoteMalaDate = d.malaLogDate || null;
+    if (remoteMalaDate === App.S.tk) {
+      App.S.malaLog = JSON.parse(JSON.stringify(remoteMalaLog));
+    } else {
+      // Remote log is from a different day — keep local today's log untouched
+    }
+  }
   if (d.ms) App.S.ms = d.ms;
   if (d.dt !== undefined) App.S.dt = d.dt;
   if (d.lt !== undefined) App.S.lt = d.lt;
-  if (d.cfg) App.S.cfg = {...App.S.cfg,...d.cfg};
-  App.save();
+  if (d.nameJapDeduct !== undefined) App.S.nameJapDeduct = d.nameJapDeduct;
+  if (d.cfg) App.S.cfg = JSON.parse(JSON.stringify(d.cfg || {}));
+  if (!App.S.history[App.S.tk]) App.S.history[App.S.tk] = 0;
+  if (!App.S.h28[App.S.tk]) App.S.h28[App.S.tk] = 0;
+  if (!App.S.timerHistory[App.S.tk]) App.S.timerHistory[App.S.tk] = 0;
+  App.S.syncBaseline = JSON.parse(JSON.stringify(App.S.history||{}));
+  App.S.syncBaseline28 = JSON.parse(JSON.stringify(App.S.h28||{}));
+  App.S.syncBaselineTimer = JSON.parse(JSON.stringify(App.S.timerHistory||{}));
+  App._suspendCloudSync = true;
+  App.save().finally(() => { App._suspendCloudSync = false; });
   App.lmc = Math.floor(App.gTod() / (App.S.ms||108));
   App.lm28 = Math.floor((App.S.h28[App.S.tk]||0) / (App.S.ms||108));
-  App.ua(); renderSt(); u28(); renderBcal(); renderCal(); uStats();
-  setSyncPill('', '🔄 Synced from device');
+  App.ua(); renderSt(); u28(); renderBcal(); renderCal(); uStats(); renderSankalpas();
+  setSyncPill('', '🔄 Synced from cloud');
 }
 
 async function fbMigrate() {
@@ -2254,7 +2453,7 @@ async function gdDriveSilentBackup() {
       history: App.S.history||{}, h28: App.S.h28||{}, timerHistory: App.S.timerHistory||{},
       stotrams: App.S.stotrams||{}, brahma: App.S.brahma||{}, customSt: App.S.customSt||[],
       sankalpas: App.S.sankalpas||[], occasions: App.S.occasions||{},
-      ms: App.S.ms||108, dt: App.S.dt||0, lt: App.S.lt||0, cfg: App.S.cfg||{}
+      ms: App.S.ms||108, dt: App.S.dt||0, lt: App.S.lt||0, nameJapDeduct: App.S.nameJapDeduct||0, cfg: App.S.cfg||{}
     }, null, 2);
     // Find existing file
     const listResp = await fetch(
@@ -2360,6 +2559,7 @@ function spawnName28(e, nameText) {
 }
 
 function cycleDone28() {
+  App.resetCycleTimer28();
   const zone = document.getElementById('tz28');
   zone.style.background = 'radial-gradient(ellipse at center,rgba(255,215,0,0.25) 0%,rgba(6,13,31,0.6) 100%)';
   setTimeout(() => zone.style.background = '', 600);
@@ -2682,6 +2882,463 @@ function uBStats(){
   document.getElementById('bmp').textContent=pct+'%';
 }
 
+// ══════════════════════════════════════════════════════════════
+// VAISHNAVA PANCHANG ENGINE
+// Pure JS astronomical calculations — no API key needed
+// Computes: Tithi, Nakshatra, Yoga, Karana, Vara (weekday),
+//           Paksha, Masa (lunar month), sunrise/sunset timings
+//           and all major Vaishnava festivals/vrats by GPS location
+// ══════════════════════════════════════════════════════════════
+
+const PANCH = (() => {
+
+  // Stored GPS coords
+  let _lat = null, _lng = null, _tz = null;
+
+  // ── Core: Julian Day Number ──
+  function jdn(y, m, d) {
+    if (m <= 2) { y--; m += 12; }
+    const A = Math.floor(y / 100), B = 2 - A + Math.floor(A / 4);
+    return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5;
+  }
+
+  // ── Sun longitude (ecliptic) ──
+  function sunLon(jd) {
+    const n = jd - 2451545.0;
+    const L = (280.46 + 0.9856474 * n) % 360;
+    const g = ((357.528 + 0.9856003 * n) % 360) * Math.PI / 180;
+    return (L + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g) + 360) % 360;
+  }
+
+  // ── Moon longitude (approximate) ──
+  function moonLon(jd) {
+    const T = (jd - 2451545.0) / 36525;
+    let L = 218.3164477 + 481267.88123421 * T;
+    L += 6.288774 * Math.sin((134.9633964 + 477198.8675055 * T) * Math.PI / 180);
+    L += 1.274027 * Math.sin((357.5291092 + 35999.0502909 * T - 2 * (280.46646 + 36000.76983 * T)) * Math.PI / 180);
+    L += 0.658314 * Math.sin(2 * (218.3164477 + 481267.88123421 * T) * Math.PI / 180);
+    L += 0.213618 * Math.sin(2 * (134.9633964 + 477198.8675055 * T) * Math.PI / 180);
+    L -= 0.185116 * Math.sin((357.5291092 + 35999.0502909 * T) * Math.PI / 180);
+    L -= 0.114332 * Math.sin(2 * (93.2720950 + 483202.0175233 * T) * Math.PI / 180);
+    return ((L % 360) + 360) % 360;
+  }
+
+  // ── Tithi (lunar day 1-30) ──
+  // Tithi = floor(elongation / 12) + 1
+  function tithi(jd) {
+    const elong = ((moonLon(jd) - sunLon(jd)) + 360) % 360;
+    const t = Math.floor(elong / 12) + 1; // 1-30
+    return t;
+  }
+
+  // ── Nakshatra (1-27) ──
+  const NAKSHATRA_NAMES = [
+    'Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra','Punarvasu',
+    'Pushya','Ashlesha','Magha','Purva Phalguni','Uttara Phalguni','Hasta',
+    'Chitra','Swati','Vishakha','Anuradha','Jyeshtha','Moola','Purva Ashadha',
+    'Uttara Ashadha','Shravana','Dhanishtha','Shatabhisha','Purva Bhadrapada',
+    'Uttara Bhadrapada','Revati'
+  ];
+  function nakshatra(jd) {
+    const ml = moonLon(jd);
+    return Math.floor(ml / (360 / 27)); // 0-26
+  }
+
+  // ── Yoga (1-27) ──
+  const YOGA_NAMES = [
+    'Vishkamba','Priti','Ayushman','Saubhagya','Shobhana','Atiganda','Sukarma',
+    'Dhriti','Shoola','Ganda','Vriddhi','Dhruva','Vyaghata','Harshana','Vajra',
+    'Siddhi','Vyatipata','Variyana','Parigha','Shiva','Siddha','Sadhya','Shubha',
+    'Shukla','Brahma','Indra','Vaidhriti'
+  ];
+  function yoga(jd) {
+    const combined = ((sunLon(jd) + moonLon(jd)) % 360 + 360) % 360;
+    return Math.floor(combined / (360 / 27)); // 0-26
+  }
+
+  // ── Karana (half-tithi) ──
+  const KARANA_NAMES = [
+    'Bava','Balava','Kaulava','Taitila','Garaja','Vanija','Vishti',
+    'Shakuni','Chatushpada','Naga','Kimstughna'
+  ];
+  function karana(jd) {
+    const elong = ((moonLon(jd) - sunLon(jd)) + 360) % 360;
+    const k = Math.floor(elong / 6); // 0-59
+    if (k === 0) return 'Kimstughna';
+    if (k >= 57) return KARANA_NAMES[7 + (k - 57)]; // fixed karanas at end
+    return KARANA_NAMES[(k - 1) % 7]; // rotating karanas
+  }
+
+  // ── Vara (weekday) ──
+  const VARA_NAMES = ['Ravivara (Sun)','Somavara (Mon)','Mangalavara (Tue)','Budhavara (Wed)','Guruvara (Thu)','Shukravara (Fri)','Shanivara (Sat)'];
+  function vara(date) { return VARA_NAMES[date.getDay()]; }
+
+  // ── Paksha (fortnight) ──
+  function paksha(tithiNum) {
+    return tithiNum <= 15 ? 'Shukla Paksha (Waxing)' : 'Krishna Paksha (Waning)';
+  }
+
+  // ── Tithi name ──
+  const TITHI_NAMES = [
+    'Pratipada','Dwitiya','Tritiya','Chaturthi','Panchami','Shashthi','Saptami',
+    'Ashtami','Navami','Dashami','Ekadashi','Dwadashi','Trayodashi','Chaturdashi',
+    'Purnima (Full Moon)','Pratipada','Dwitiya','Tritiya','Chaturthi','Panchami',
+    'Shashthi','Saptami','Ashtami','Navami','Dashami','Ekadashi','Dwadashi',
+    'Trayodashi','Chaturdashi','Amavasya (New Moon)'
+  ];
+  function tithiName(t) { return TITHI_NAMES[t - 1] || '—'; }
+
+  // ── Lunar month (Masa) ──
+  const MASA_NAMES = [
+    'Chaitra','Vaishakha','Jyeshtha','Ashadha','Shravana','Bhadrapada',
+    'Ashwin','Kartika','Margashirsha','Pausha','Magha','Phalguna'
+  ];
+  function masa(jd) {
+    // Approximate: based on sun's tropical month position
+    const sl = sunLon(jd);
+    // Chaitra begins when sun ~0°, offset by ~23.4° for sidereal
+    const sidereal = ((sl - 23.85 + 360) % 360);
+    return MASA_NAMES[Math.floor((sidereal / 30 + 1) % 12)];
+  }
+
+  // ── Sunrise/Sunset (returns local time strings) ──
+  function sunriseSunset(lat, lng, date) {
+    if (!lat || !lng) return { sunrise: '—', sunset: '—', sunriseH: null, sunsetH: null };
+    const times = calcSunTimes(lat, lng, date);
+    if (!times) return { sunrise: '—', sunset: '—', sunriseH: null, sunsetH: null };
+    return times;
+  }
+
+  // ── Vaishnava Festivals detection ──
+  // Returns array of festival objects for a given date
+  function festivals(dateStr, lat, lng) {
+    const [yr, mo, day] = dateStr.split('-').map(Number);
+    const date = new Date(yr, mo - 1, day, 12, 0, 0);
+    const jd = jdn(yr, mo, day) + 0.5;
+    const t = tithi(jd);
+    const nak = nakshatra(jd);
+    const wday = date.getDay(); // 0=Sun
+    const events = [];
+
+    // ── Ekadashi (11th tithi both pakshas) ──
+    if (t === 11 || t === 26) {
+      // Name by lunar month
+      const m = masa(jd);
+      const isShukla = t === 11;
+      const ekNames = {
+        'Chaitra':    [isShukla ? 'Kamada Ekadashi' : 'Varuthini Ekadashi'],
+        'Vaishakha':  [isShukla ? 'Mohini Ekadashi' : 'Apara Ekadashi'],
+        'Jyeshtha':   [isShukla ? 'Nirjala Ekadashi' : 'Yogini Ekadashi'],
+        'Ashadha':    [isShukla ? 'Devshayani Ekadashi' : 'Kamika Ekadashi'],
+        'Shravana':   [isShukla ? 'Putrada Ekadashi' : 'Aja Ekadashi'],
+        'Bhadrapada': [isShukla ? 'Parsva Ekadashi' : 'Indira Ekadashi'],
+        'Ashwin':     [isShukla ? 'Papankusha Ekadashi' : 'Rama Ekadashi'],
+        'Kartika':    [isShukla ? 'Prabodhini Ekadashi (Dev Uthani)' : 'Rama Ekadashi'],
+        'Margashirsha':[isShukla ? 'Mokshadha Ekadashi (Gita Jayanti)' : 'Saphala Ekadashi'],
+        'Pausha':     [isShukla ? 'Putrada Ekadashi' : 'Shattila Ekadashi'],
+        'Magha':      [isShukla ? 'Jaya Ekadashi' : 'Vijaya Ekadashi'],
+        'Phalguna':   [isShukla ? 'Amalaki Ekadashi' : 'Papamochani Ekadashi'],
+      };
+      const name = (ekNames[m] || ['Ekadashi'])[0];
+      events.push({ type: 'ekadashi', icon: '🔵', label: name, note: 'Vaishnava Ekadashi Vrat — fast from grains' });
+    }
+
+    // ── Dvadashi / Parana day ──
+    if (t === 12 || t === 27) {
+      events.push({ type: 'vrat', icon: '🟢', label: 'Dvadashi — Parana Day', note: 'Break Ekadashi fast after sunrise' });
+    }
+
+    // ── Purnima (Full Moon) ──
+    if (t === 15) {
+      events.push({ type: 'festival', icon: '🌕', label: 'Purnima — Full Moon', note: 'Sacred day for worship & charity' });
+      // Check special Purnimas
+      const m = masa(jd);
+      if (m === 'Kartika') events.push({ type: 'festival', icon: '🪔', label: 'Kartika Purnima — Dev Deepawali', note: 'Bathe in holy rivers before sunrise' });
+      if (m === 'Vaishakha') events.push({ type: 'festival', icon: '🌸', label: 'Buddha Purnima / Vaishakha Purnima' });
+      if (m === 'Ashadha') events.push({ type: 'festival', icon: '🎡', label: 'Guru Purnima (Ashadha Purnima)', note: 'Honor your Guru today' });
+      if (m === 'Shravana') events.push({ type: 'festival', icon: '🌼', label: 'Shravana Purnima — Raksha Bandhan' });
+      if (m === 'Bhadrapada') events.push({ type: 'festival', icon: '🌊', label: 'Bhadrapada Purnima', note: 'Pitru Paksha begins next day' });
+      if (m === 'Phalguna') events.push({ type: 'festival', icon: '🎨', label: 'Holi — Phalguna Purnima', note: 'Holika Dahan tonight' });
+    }
+
+    // ── Amavasya (New Moon) ──
+    if (t === 30) {
+      events.push({ type: 'festival', icon: '🌑', label: 'Amavasya — New Moon', note: 'Day for ancestral prayers (Pitru Tarpana)' });
+    }
+
+    // ── Chaturdashi Krishna (14th Krishna = Shivaratri-like) ──
+    if (t === 29) {
+      const m = masa(jd);
+      if (m === 'Magha' || m === 'Phalguna') {
+        events.push({ type: 'festival', icon: '🔱', label: 'Maha Shivaratri', note: 'Night-long vigil & Shiva worship' });
+      }
+    }
+
+    // ── Janmashtami: Krishna Paksha Ashtami of Bhadrapada ──
+    if (t === 23) { // Ashtami Krishna Paksha
+      const m = masa(jd);
+      if (m === 'Bhadrapada') {
+        events.push({ type: 'festival', icon: '🦚', label: 'Shri Krishna Janmashtami', note: 'Fast until midnight; celebrate at Nishitha' });
+      }
+    }
+
+    // ── Radhashtami: Shukla Ashtami of Bhadrapada ──
+    if (t === 8) {
+      const m = masa(jd);
+      if (m === 'Bhadrapada') {
+        events.push({ type: 'festival', icon: '🌸', label: 'Shri Radhashtami', note: 'Birthday of Shrimati Radharani 🙏' });
+      }
+      // Durgashtami (Navaratri)
+      if (m === 'Ashwin') {
+        events.push({ type: 'festival', icon: '⚡', label: 'Durgashtami (Maha Ashtami)', note: 'Navaratri — 8th day of Devi worship' });
+      }
+    }
+
+    // ── Navami: Rama Navami ──
+    if (t === 9) {
+      const m = masa(jd);
+      if (m === 'Chaitra') {
+        events.push({ type: 'festival', icon: '🏹', label: 'Shri Rama Navami', note: 'Birthday of Shri Ram — fast & worship' });
+      }
+    }
+
+    // ── Akshaya Tritiya: Vaishakha Shukla Tritiya ──
+    if (t === 3) {
+      const m = masa(jd);
+      if (m === 'Vaishakha') {
+        events.push({ type: 'festival', icon: '✨', label: 'Akshaya Tritiya', note: 'Auspicious day — no muhurta needed' });
+      }
+    }
+
+    // ── Rath Yatra: Ashadha Shukla Dwitiya ──
+    if (t === 2) {
+      const m = masa(jd);
+      if (m === 'Ashadha') {
+        events.push({ type: 'festival', icon: '🚩', label: 'Rath Yatra (Jagannath)', note: 'Chariot procession of Lord Jagannath' });
+      }
+    }
+
+    // ── Govardhan Puja: Kartika Shukla Pratipada ──
+    if (t === 1) {
+      const m = masa(jd);
+      if (m === 'Kartika') {
+        events.push({ type: 'festival', icon: '⛰️', label: 'Govardhan Puja (Annakut)', note: 'Celebrate Shri Krishna lifting Govardhan' });
+      }
+    }
+
+    // ── Diwali: Kartika Krishna Chaturdashi / Amavasya ──
+    if (t === 29 || t === 30) {
+      const m = masa(jd);
+      if (m === 'Kartika') {
+        if (t === 29) events.push({ type: 'festival', icon: '🪔', label: 'Naraka Chaturdashi (Choti Diwali)' });
+        if (t === 30) events.push({ type: 'festival', icon: '🎆', label: 'Diwali — Lakshmi Puja', note: 'Night of lights & Goddess Lakshmi worship' });
+      }
+    }
+
+    // ── Bhai Dooj / Yama Dwitiya ──
+    if (t === 17) { // Krishna Dwitiya after Diwali
+      const m = masa(jd);
+      if (m === 'Kartika') {
+        events.push({ type: 'festival', icon: '👫', label: 'Bhai Dooj (Yama Dwitiya)' });
+      }
+    }
+
+    // ── Hanumanji: Saturday, Chaturdashi, or Nakshatra Chitra ──
+    if (wday === 2 && nak === 14) { // Tuesday + Chitra nakshatra
+      events.push({ type: 'vrat', icon: '🐒', label: 'Hanuman Puja', note: 'Tuesday + Chitra Nakshatra — auspicious for Hanuman worship' });
+    }
+    if (t === 15 && masa(jd) === 'Chaitra') {
+      events.push({ type: 'festival', icon: '🐒', label: 'Hanuman Jayanti', note: 'Birthday of Shri Hanumanji' });
+    }
+
+    // ── Pradosh Vrat: 13th tithi (Trayodashi) both pakshas ──
+    if (t === 13 || t === 28) {
+      events.push({ type: 'vrat', icon: '🌙', label: 'Pradosh Vrat', note: 'Evening worship of Shri Shiva & Parvati' });
+    }
+
+    // ── Kartika Masa ── entire month is sacred
+    const currentMasa = masa(jd);
+    if (currentMasa === 'Kartika') {
+      events.push({ type: 'vrat', icon: '🪔', label: 'Kartika Masa', note: 'Sacred month — light a deepa for Tulsi' });
+    }
+
+    // ── Tulsi Vivah: Kartika Shukla Dwadashi ──
+    if (t === 12 && currentMasa === 'Kartika') {
+      events.push({ type: 'festival', icon: '🌿', label: 'Tulsi Vivah', note: 'Marriage ceremony of Tulsi & Shaligram' });
+    }
+
+    // ── Vasant Panchami: Magha Shukla Panchami ──
+    if (t === 5 && currentMasa === 'Magha') {
+      events.push({ type: 'festival', icon: '🌼', label: 'Vasant Panchami (Saraswati Puja)', note: 'Worship Goddess Saraswati' });
+    }
+
+    // ── Vaikunta Ekadashi: Margashirsha Shukla Ekadashi ──
+    if (t === 11 && currentMasa === 'Margashirsha') {
+      events.push({ type: 'ekadashi', icon: '🚪', label: 'Vaikunta Ekadashi', note: 'Vaikunta Dwara opens — most sacred Ekadashi' });
+    }
+
+    // ── Navaratri blocks ──
+    const m = masa(jd);
+    if ((m === 'Ashwin' || m === 'Chaitra') && t >= 1 && t <= 9) {
+      if (t === 1) events.push({ type: 'festival', icon: '🪔', label: 'Navaratri Begins', note: '9 nights of Goddess Durga' });
+      if (t === 9) events.push({ type: 'festival', icon: '⚔️', label: 'Mahanavami', note: 'Navaratri 9th day — Devi weapons worship' });
+    }
+    if ((m === 'Ashwin') && t === 10) {
+      events.push({ type: 'festival', icon: '🎉', label: 'Vijayadashami (Dussehra)', note: 'Victory of dharma over adharma' });
+    }
+
+    return events;
+  }
+
+  // ── Full Panchang for a date ──
+  function panchang(dateStr, lat, lng) {
+    const [yr, mo, day] = dateStr.split('-').map(Number);
+    const date = new Date(yr, mo - 1, day, 12, 0, 0);
+    const jd = jdn(yr, mo, day) + 0.5;
+    const t = tithi(jd);
+    const nak = nakshatra(jd);
+    const yog = yoga(jd);
+    const kar = karana(jd);
+    const sunTimes = sunriseSunset(lat, lng, date);
+    const fests = festivals(dateStr, lat, lng);
+
+    return {
+      tithi: (t <= 15 ? 'S' : 'K') + '-' + tithiName(t),
+      tithiNum: t,
+      paksha: paksha(t),
+      nakshatra: NAKSHATRA_NAMES[nak],
+      yoga: YOGA_NAMES[yog],
+      karana: kar,
+      vara: vara(date),
+      masa: masa(jd),
+      sunrise: sunTimes.sunrise,
+      sunset: sunTimes.sunset,
+      festivals: fests
+    };
+  }
+
+  // ── Cache ──
+  const _cache = {};
+  function get(dateStr) {
+    if (_cache[dateStr]) return _cache[dateStr];
+    const result = panchang(dateStr, _lat, _lng);
+    _cache[dateStr] = result;
+    return result;
+  }
+
+  function setLocation(lat, lng) {
+    _lat = lat; _lng = lng;
+    Object.keys(_cache).forEach(k => delete _cache[k]); // clear cache on location change
+  }
+
+  function getLocation() { return { lat: _lat, lng: _lng }; }
+
+  // ── Pre-compute month for calendar markers ──
+  function monthEvents(yr, mo) {
+    const dim = new Date(yr, mo, 0).getDate();
+    const result = {};
+    for (let d = 1; d <= dim; d++) {
+      const key = yr + '-' + String(mo).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      const p = get(key);
+      if (p.festivals.length > 0) {
+        result[key] = p.festivals;
+      }
+    }
+    return result;
+  }
+
+  return { get, setLocation, getLocation, monthEvents, festivals, panchang };
+})();
+
+// ── Panchang location setup ──
+let _panchLat = null, _panchLng = null;
+
+function panchInitLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      _panchLat = pos.coords.latitude;
+      _panchLng = pos.coords.longitude;
+      PANCH.setLocation(_panchLat, _panchLng);
+      _panchUpdateLocationBar();
+      renderCal();
+    }, () => {
+      // Fallback: Vrindavan
+      _panchLat = 27.5794; _panchLng = 77.6964;
+      PANCH.setLocation(_panchLat, _panchLng);
+      _panchUpdateLocationBar('Vrindavan (default)');
+      renderCal();
+    }, { timeout: 8000, maximumAge: 3600000 });
+  } else {
+    _panchLat = 27.5794; _panchLng = 77.6964;
+    PANCH.setLocation(_panchLat, _panchLng);
+    _panchUpdateLocationBar('Vrindavan (default)');
+  }
+}
+
+function panchRefreshLocation() {
+  const bar = document.getElementById('panchLocText');
+  if (bar) bar.textContent = '📍 Detecting location…';
+  if (!navigator.geolocation) { toast('Geolocation not available'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    _panchLat = pos.coords.latitude;
+    _panchLng = pos.coords.longitude;
+    PANCH.setLocation(_panchLat, _panchLng);
+    _panchUpdateLocationBar();
+    renderCal();
+    toast('📍 Location updated!');
+  }, () => toast('Could not get location'), { timeout: 8000 });
+}
+
+function _panchUpdateLocationBar(label) {
+  const el = document.getElementById('panchLocText');
+  if (!el) return;
+  if (label) { el.textContent = '📍 ' + label; return; }
+  if (_panchLat && _panchLng) {
+    el.textContent = '📍 ' + _panchLat.toFixed(2) + '°, ' + _panchLng.toFixed(2) + '°';
+  }
+}
+
+// ── Render Panchang in bottom sheet ──
+function renderPanchang(dateStr) {
+  const body = document.getElementById('cdmoPanchBody');
+  const loader = document.getElementById('cdmoPanchLoader');
+  if (!body) return;
+  if (!_panchLat) {
+    body.innerHTML = '<div class="panch-loading">Waiting for GPS…</div>';
+    return;
+  }
+  if (loader) loader.textContent = '';
+  const p = PANCH.get(dateStr);
+  const rows = [
+    ['Vara', p.vara],
+    ['Tithi', p.tithi],
+    ['Paksha', p.paksha],
+    ['Nakshatra', p.nakshatra],
+    ['Yoga', p.yoga],
+    ['Karana', p.karana],
+    ['Masa', p.masa],
+    ['Sunrise', p.sunrise],
+    ['Sunset', p.sunset],
+  ];
+  let html = rows.map(([k, v]) =>
+    `<div class="panch-row"><span class="panch-key">${k}</span><span class="panch-val">${v}</span></div>`
+  ).join('');
+  if (p.festivals.length > 0) {
+    html += '<div class="panch-festivals">';
+    p.festivals.forEach(f => {
+      html += `<div class="panch-fest-item ${f.type}">
+        <span style="font-size:16px">${f.icon}</span>
+        <div>
+          <div style="font-weight:600">${escHtml(f.label)}</div>
+          ${f.note ? `<div style="font-size:10px;opacity:0.75;margin-top:2px">${escHtml(f.note)}</div>` : ''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  body.innerHTML = html;
+}
+
 // ── Calendar ──
 let cald = new Date();
 function renderCal(){
@@ -2690,18 +3347,23 @@ function renderCal(){
   const g=document.getElementById('cg');
   while(g.children.length>7)g.removeChild(g.lastChild);
   const fd=new Date(yr,mo,1).getDay(),dim=new Date(yr,mo+1,0).getDate(),ts=App.getTk();
+  const monthP=_panchLat?PANCH.monthEvents(yr,mo+1):{};
   for(let i=0;i<fd;i++)g.appendChild(document.createElement('div'));
   for(let d=1;d<=dim;d++){
     const key=yr+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const cnt=App.S.history[key]||0, timeSec=App.S.timerHistory[key]||0;
     const occ=App.S.occasions&&App.S.occasions[key];
+    const pFests=monthP[key]||[];
     const c=document.createElement('div');c.className='cc';
     if(key===ts)c.classList.add('today');
     if(cnt>0){c.classList.add('hd');if(App.S.dt>0&&cnt>=App.S.dt)c.classList.add('tm');}
     if(occ)c.classList.add('occ');
+    if(pFests.some(f=>f.type==='festival'))c.classList.add('festival-day');
+    if(pFests.some(f=>f.type==='ekadashi'||f.type==='vrat'))c.classList.add('panch-day');
     let inner='<span>'+d+'</span>';
     if(cnt>0)inner+='<span class="ccc">'+cnt+'</span>';
     if(occ)inner+='<span class="cco">'+escHtml(occ)+'</span>';
+    else if(pFests.length>0){const f=pFests[0];const sl=f.label.length>11?f.label.slice(0,10)+'…':f.label;inner+='<span class="ccp">'+f.icon+' '+escHtml(sl)+'</span>';}
     c.innerHTML=inner;
     c.onclick=(()=>{const k=key,n=cnt,t=timeSec;return()=>showDay(k,n,t);})();
     g.appendChild(c);
@@ -2731,6 +3393,9 @@ function showDay(key, cnt, timeSec) {
 
   // Clear input
   document.getElementById('cdmoOccIn').value = '';
+
+  // Panchang
+  renderPanchang(key);
 
   document.getElementById('cdmo').classList.add('show');
 }
@@ -2908,6 +3573,7 @@ window.addEventListener('load', async () => {
   App.ua();
   fbInit();
   initSunTimes();
+  panchInitLocation();
   buildPwaManifest();
 
   // Restore Drive token if re-opened
