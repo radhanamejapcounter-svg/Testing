@@ -2,7 +2,7 @@
 // Radha Naam Jap — Service Worker
 // Update CACHE version when index.html changes
 // ═══════════════════════════════════════════════
-const CACHE = 'radha-jap-v8';  // bumped v7 → v8 (Vaishnava Panchang calendar integration)
+const CACHE = 'radha-jap-v13';  // bumped v9 → v10 (bug fixes: cycle count, mala log, mala stat removed)
 
 const PRECACHE = [
   './index.html',
@@ -15,6 +15,8 @@ const PRECACHE = [
 ];
 
 // Firebase & Google auth must pass through — their SDKs handle offline internally
+// accounts.google.com is listed broadly so ALL GSI runtime auth calls are bypassed,
+// not just the /o/oauth2 path (fixes Google Sign-In interception bug).
 const BYPASS = [
   'firestore.googleapis.com',
   'identitytoolkit.googleapis.com',
@@ -23,7 +25,7 @@ const BYPASS = [
   'firebase.googleapis.com',
   'firebaseio.com',
   'oauth2.googleapis.com',
-  'accounts.google.com/o/oauth2'
+  'accounts.google.com'   // broadened from /o/oauth2 — covers all GSI auth traffic
 ];
 
 // ── Install: pre-cache critical assets ──
