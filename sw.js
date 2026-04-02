@@ -2,7 +2,7 @@
 // Radha Naam Jap — Service Worker
 // Update CACHE version when index.html changes
 // ═══════════════════════════════════════════════
-const CACHE = 'radha-jap-v21';  // v21: lakh gati tracker + sadhana journey date customisation
+const CACHE = 'radha-jap-v22';  // v22: animated splash with orbiting Radha naam rings
 
 const PRECACHE = [
   './index.html',
